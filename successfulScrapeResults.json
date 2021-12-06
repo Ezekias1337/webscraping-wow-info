@@ -1,0 +1,29 @@
+[
+  { "ID": 0 },
+  { "ID": 1 },
+  { "ID": 2 },
+  { "ID": 3 },
+  {
+    "ID": 4,
+    "spellName": "Word of Recall Other",
+    "isTalent": "Word of Recall Other"
+  },
+  { "ID": 5 },
+  { "ID": 6 },
+  { "ID": 7 },
+  { "ID": 8 },
+  { "ID": 9 },
+  { "ID": 10, "spellCost": "Mana" },
+  {
+    "ID": 11,
+    "spellName": "Frostbolt of Ages",
+    "isTalent": "Frostbolt of Ages"
+  },
+  { "ID": 12, "spellName": "Hot Foot (TEST)", "isTalent": "Hot Foot (TEST)" },
+  {
+    "ID": 13,
+    "spellName": "Swim Speed (TEST)",
+    "isTalent": "Swim Speed (TEST)"
+  },
+  { "ID": 14 }
+]
