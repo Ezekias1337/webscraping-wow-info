@@ -90,13 +90,21 @@ async function parseSpellCost(htmlToParse) {
           //Removed first item from array, because it's unneeded
           itemStringSplit.shift();
           for (const individualElement of itemStringSplit) {
-            //console.log(index, individualElement, "passed html test")
+            console.log(individualElement, "passed html test");
             if (
               individualElement.includes("Energy") ||
+              individualElement.includes("energy") ||
               individualElement.includes("Rage") ||
+              individualElement.includes("rage") ||
               individualElement.includes("Focus") ||
-              individualElement.includes("Mana")
+              individualElement.includes("focus") ||
+              individualElement.includes("Mana") ||
+              individualElement.includes("mana")
             ) {
+              console.log(
+                individualElement,
+                "passed html test and energy cost"
+              );
               if (individualElement.includes("\t")) {
                 for (const individualElementSplitToArray of individualElement.split(
                   "\t"
@@ -249,10 +257,33 @@ async function parseClassRequirement(driver) {
     const elementWithPotentialClassRequirementsInnerText =
       await elementWithPotentialClassRequirements.getAttribute("innerText");
     //Removes escape character if it's present in string
-      const parsedString = elementWithPotentialClassRequirementsInnerText.replace(/\n/g, "")
-      const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ")
-      console.log("final class requirement string", parsedStringNoDoubleSpace)
-      return parsedStringNoDoubleSpace
+    const parsedString = elementWithPotentialClassRequirementsInnerText.replace(
+      /\n/g,
+      ""
+    );
+    const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ");
+    return parsedStringNoDoubleSpace;
+  } catch (error) {}
+
+  //If spell has only one class requirement, need to search by alternate xpath
+  try {
+    const infoBoxContents = await driver.findElements(
+      By.className("infobox-inner-table")
+    );
+    const elementWithPotentialClassRequirements =
+      await infoBoxContents[0].findElement(
+        By.xpath("//div[contains(text(), 'Class:')]")
+      );
+    const elementWithPotentialClassRequirementsInnerText =
+      await elementWithPotentialClassRequirements.getAttribute("innerText");
+    //Removes escape character if it's present in string
+    const parsedString = elementWithPotentialClassRequirementsInnerText.replace(
+      /\n/g,
+      ""
+    );
+    const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ");
+    console.log("final class requirement string", parsedStringNoDoubleSpace);
+    return parsedStringNoDoubleSpace;
   } catch (error) {}
   return null;
 }
@@ -319,11 +350,10 @@ async function parseDescription(htmlToParse) {
         const spellDescriptionHTMLRemoved = await item.getAttribute(
           "innerText"
         );
-        const invisibleCharactersRemoved = spellDescriptionHTMLRemoved.replace(
-          " ",
-          ""
-        );
-        return invisibleCharactersRemoved;
+        const parsedString = spellDescriptionHTMLRemoved.replace(/\n/g, " ");
+        const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ");
+
+        return parsedStringNoDoubleSpace;
       } else {
         return spellDescription;
       }
@@ -425,6 +455,7 @@ async function scrapeThenWriteToJSON() {
   let dataFailed = JSON.stringify(resultOfScrape[1]);
   let dataPotentiallySkipped = JSON.stringify(resultOfScrape[2]);
   let dataOfIDsMostLikelyExisting = JSON.stringify(resultOfScrape[3]);
+  let driver = resultOfScrape[4];
 
   fs.writeFileSync("successfulScrapeResults.json", dataComplete);
   fs.writeFileSync("unsuccessfulScrapeResults.json", dataFailed);
@@ -433,6 +464,7 @@ async function scrapeThenWriteToJSON() {
     "arrayDataOfIDsMostLikelyExisting.json",
     dataOfIDsMostLikelyExisting
   );
+  await driver.close();
 }
 
 async function scrapeSpellInfo() {
@@ -443,10 +475,10 @@ async function scrapeSpellInfo() {
   let arrayOfIDsMostLikelyExisting = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 196; i < 200; i++) {
+  for (let i = 597; i < 598; i++) {
     let continueCodeExecution = false;
 
-    //check for element with warning that id doesn't exist in db
+    //check for element with warning stating that id doesn't exist in db
     //if try statement is successful, element doesn't exist in db
     try {
       await driver.get(`https://tbc.wowhead.com/spell=${i}`);
@@ -476,15 +508,20 @@ async function scrapeSpellInfo() {
       }
     }
   }
-  console.log(arrayOfScrapedData);
-  console.log(arrayOfFailedSpellIDs);
-  console.log(arrayOfPotentiallySkippedIDs);
-  console.log(arrayOfIDsMostLikelyExisting);
+
+  console.log(
+    arrayOfScrapedData,
+    arrayOfFailedSpellIDs,
+    arrayOfPotentiallySkippedIDs,
+    arrayOfIDsMostLikelyExisting
+  );
+
   return [
     arrayOfScrapedData,
     arrayOfFailedSpellIDs,
     arrayOfPotentiallySkippedIDs,
     arrayOfIDsMostLikelyExisting,
+    driver
   ];
 }
 
