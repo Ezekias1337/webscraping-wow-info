@@ -1,29 +1,74 @@
 [
-  { "ID": 0 },
-  { "ID": 1 },
-  { "ID": 2 },
-  { "ID": 3 },
+  {
+    "ID": 1,
+    "spellName": "Word of Recall (OLD)",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "10 sec cast"
+  },
   {
     "ID": 4,
     "spellName": "Word of Recall Other",
-    "isTalent": "Word of Recall Other"
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant"
   },
-  { "ID": 5 },
-  { "ID": 6 },
-  { "ID": 7 },
-  { "ID": 8 },
-  { "ID": 9 },
-  { "ID": 10, "spellCost": "Mana" },
   {
-    "ID": 11,
-    "spellName": "Frostbolt of Ages",
-    "isTalent": "Frostbolt of Ages"
+    "ID": 10,
+    "spellName": "Blizzard",
+    "isTalent": false,
+    "spellCastTime": "Channeled (8 sec cast)",
+    "spellRange": "30 yd range",
+    "classRequirement": "Requires Mage",
+    "levelRequirement": "Requires level 20"
   },
-  { "ID": 12, "spellName": "Hot Foot (TEST)", "isTalent": "Hot Foot (TEST)" },
   {
     "ID": 13,
     "spellName": "Swim Speed (TEST)",
-    "isTalent": "Swim Speed (TEST)"
+    "isTalent": false,
+    "spellCastTime": "Instant"
   },
-  { "ID": 14 }
+  {
+    "ID": 14,
+    "spellName": "Mana Drain",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 15,
+    "spellName": "Leech (TEST)",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant"
+  },
+  {
+    "ID": 18,
+    "spellName": "Heal Self (TEST)",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant"
+  },
+  {
+    "ID": 22,
+    "spellName": "Super Food (TEST)",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant"
+  },
+  {
+    "ID": 24,
+    "spellName": "Major Heal Self (TEST)",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant"
+  },
+  {
+    "ID": 26,
+    "spellName": "Bind Self (TEST)",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant"
+  }
 ]

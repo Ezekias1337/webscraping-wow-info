@@ -9,6 +9,402 @@ function generateDelayNumber() {
   return amountToSleep;
 }
 
+async function checkIfSpellExists() {}
+
+async function parseSpellName(htmlToParse) {
+  try {
+    const whttNameElementList = await htmlToParse.findElements(
+      By.className("whtt-name")
+    );
+
+    for (let [index, item] of whttNameElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (!itemToPushToObj.includes("<b")) {
+        const spellName = itemToPushToObj;
+        return spellName;
+      }
+    }
+  } catch (error) {
+    return null;
+  }
+}
+
+async function parseRank(htmlToParse) {
+  try {
+    const q0ElementList = await htmlToParse.findElements(By.className("q0"));
+
+    for (let [index, item] of q0ElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (itemToPushToObj.includes("Rank")) {
+        let rankStrSliced = objToPush.rank.slice(0, 6);
+        const spellRank = rankStrSliced;
+        return spellRank;
+      }
+    }
+  } catch (error) {
+    console.log("No rank for this spell");
+    return null;
+  }
+}
+
+async function parseTalent(htmlToParse) {
+  try {
+    const q0ElementList = await htmlToParse.findElements(By.className("q0"));
+
+    for (let [index, item] of q0ElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (itemToPushToObj.includes("Talent")) {
+        return true;
+      }
+    }
+  } catch (error) {
+    console.log("No talent for this spell");
+    return false;
+  }
+}
+
+async function parseSpellCost(htmlToParse) {
+  try {
+    const tdElementList = await htmlToParse.findElements(By.css("td"));
+    for (let [index, item] of tdElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+      if (
+        itemToPushToObj.includes("Energy") ||
+        itemToPushToObj.includes("Rage") ||
+        itemToPushToObj.includes("Focus") ||
+        itemToPushToObj.includes("Mana") /*  &&
+        !(
+          itemToPushToObj.includes("Instant") ||
+          itemToPushToObj.includes("sec cast") ||
+          itemToPushToObj.includes("Channeled")
+        ) */
+      ) {
+        console.log(index, itemToPushToObj);
+        if (
+          itemToPushToObj.includes("<br>") ||
+          itemToPushToObj.includes("<table") ||
+          itemToPushToObj.includes("<div") ||
+          itemToPushToObj.includes("<a") ||
+          itemToPushToObj.includes("<b")
+        ) {
+          const refinedItemToPushToObjStringToSplit = await item.getAttribute(
+            "innerText"
+          );
+          const itemStringSplit =
+            refinedItemToPushToObjStringToSplit.split("\n");
+          //Removed first item from array, because it's unneeded
+          itemStringSplit.shift();
+          for (const individualElement of itemStringSplit) {
+            if (
+              individualElement.includes("Energy") ||
+              individualElement.includes("Rage") ||
+              individualElement.includes("Focus") ||
+              individualElement.includes("Mana")
+            ) {
+              return individualElement;
+            } else {
+              return null;
+            }
+          }
+
+          return itemStringSplit;
+        } else {
+          const spellCost = itemToPushToObj;
+          return spellCost;
+        }
+      }
+    }
+  } catch (error) {
+    console.log("No cost for this spell");
+    return null;
+  }
+}
+
+async function parseCastTime(htmlToParse) {
+  try {
+    const tdElementList = await htmlToParse.findElements(By.css("td"));
+    for (let [index, item] of tdElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (
+        itemToPushToObj.includes("Instant") ||
+        itemToPushToObj.includes("sec cast") ||
+        itemToPushToObj.includes(" cast)")
+      ) {
+        if (
+          itemToPushToObj.includes("<br>") ||
+          itemToPushToObj.includes("<table") ||
+          itemToPushToObj.includes("<div") ||
+          itemToPushToObj.includes("<a") ||
+          itemToPushToObj.includes("<b")
+        ) {
+          const refinedItemToPushToObjStringToSplit = await item.getAttribute(
+            "innerText"
+          );
+          const itemStringSplitToArray =
+            refinedItemToPushToObjStringToSplit.split("\n");
+          //Removed first item from array, because it's unneeded
+          itemStringSplitToArray.shift();
+          for (const [
+            index,
+            arrayElement,
+          ] of itemStringSplitToArray.entries()) {
+            if (
+              arrayElement.includes("Instant") ||
+              arrayElement.includes("sec cast") ||
+              (arrayElement.includes(" cast)") &&
+                !(
+                  arrayElement.includes("Energy") ||
+                  arrayElement.includes("Rage") ||
+                  arrayElement.includes("Focus") ||
+                  arrayElement.includes("Mana")
+                ))
+            ) {
+              if (arrayElement.includes("\t")) {
+                let refinedArray = arrayElement.split("\t");
+                for (const stringIndex of refinedArray) {
+                  if (
+                    stringIndex.includes("Instant") ||
+                    stringIndex.includes("sec cast") ||
+                    stringIndex.includes(" cast")
+                  ) {
+                    return stringIndex;
+                  }
+                }
+              } else {
+                return arrayElement;
+              }
+            }
+          }
+        } else {
+          spellCastTime = itemToPushToObj;
+          return spellCastTime;
+        }
+      }
+    }
+  } catch (error) {
+    console.log("No cast time for this spell");
+    return null;
+  }
+}
+
+async function parseRange(htmlToParse) {
+  try {
+    const thElementList = await htmlToParse.findElements(By.css("th"));
+
+    for (let [index, item] of thElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (
+        itemToPushToObj.includes("Melee Range") ||
+        itemToPushToObj.includes("yd range") ||
+        itemToPushToObj.includes("Unlimited range")
+      ) {
+        const spellRange = itemToPushToObj;
+        return spellRange;
+      }
+    }
+  } catch (error) {
+    console.log("No range for this spell");
+    return null;
+  }
+}
+
+async function parseCD(htmlToParse) {
+  try {
+    const thElementList = await htmlToParse.findElements(By.css("th"));
+
+    for (let [index, item] of thElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (itemToPushToObj.includes("sec cooldown")) {
+        const spellCD = itemToPushToObj;
+        return spellCD;
+      }
+    }
+  } catch (error) {
+    console.log("No CD for this spell");
+    return null;
+  }
+}
+
+async function parseClassRequirement(htmlToParse) {
+  try {
+    const thElementList = await htmlToParse.findElements(
+      By.className("wowhead-tooltip-requirements")
+    );
+
+    for (let [index, item] of thElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (
+        itemToPushToObj.includes("Druid") ||
+        itemToPushToObj.includes("Hunter") ||
+        itemToPushToObj.includes("Mage") ||
+        itemToPushToObj.includes("Paladin") ||
+        itemToPushToObj.includes("Priest") ||
+        itemToPushToObj.includes("Rogue") ||
+        itemToPushToObj.includes("Shaman") ||
+        itemToPushToObj.includes("Warlock") ||
+        itemToPushToObj.includes("Warrior")
+      ) {
+        const spellClassRequirement = itemToPushToObj;
+        return spellClassRequirement;
+      }
+    }
+  } catch (error) {
+    console.log("No class requirement for this spell");
+    return null;
+  }
+}
+
+async function parseLevelRequirement(htmlToParse) {
+  try {
+    const thElementList = await htmlToParse.findElements(
+      By.className("wowhead-tooltip-requirements")
+    );
+
+    for (let [index, item] of thElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (itemToPushToObj.includes("Requires level")) {
+        const spellLevelRequirement = itemToPushToObj;
+        return spellLevelRequirement;
+      }
+    }
+  } catch (error) {
+    console.log("No level requirement for this spell");
+    return null;
+  }
+}
+
+async function parseWeaponRequirement(htmlToParse) {
+  try {
+    const thElementList = await htmlToParse.findElements(
+      By.className("wowhead-tooltip-requirements")
+    );
+
+    for (let [index, item] of thElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (
+        itemToPushToObj.includes("Requires Ranged Weapon") ||
+        itemToPushToObj.includes("Requires Melee Weapon") ||
+        itemToPushToObj.includes("Requires Wand")
+      ) {
+        const spellWeaponRequirement = itemToPushToObj;
+        return spellWeaponRequirement;
+      }
+    }
+  } catch (error) {
+    console.log("No weapon requirement for this spell");
+    return null;
+  }
+}
+
+async function parseDescription(htmlToParse) {
+  try {
+    const spellDescriptionElementList = await htmlToParse.findElements(
+      By.className("q")
+    );
+
+    for (let [index, item] of spellDescriptionElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+      objToPush.spellDescription = itemToPushToObj;
+    }
+  } catch (error) {
+    console.log("No description for this spell");
+    return null;
+  }
+}
+
+async function parseToolTipInOrder(i, driver) {
+  const tooltipXPATH =
+    "/html/body/div[5]/div/div/div[2]/div[3]/div[3]/div[4]/table";
+  let objToPush = {};
+  objToPush.ID = i;
+
+  const toolTipTable = await driver.findElement(By.xpath(tooltipXPATH));
+
+  objToPush.spellName = await parseSpellName(toolTipTable);
+  if (objToPush.spellName === undefined || objToPush.spellName === null) {
+    delete objToPush.spellName;
+  }
+
+  objToPush.spellRank = await parseRank(toolTipTable);
+  if (objToPush.spellRank === undefined || objToPush.spellRank === null) {
+    delete objToPush.spellRank;
+  }
+
+  objToPush.isTalent = await parseTalent(toolTipTable);
+  if (objToPush.isTalent === undefined || objToPush.isTalent === null) {
+    objToPush.isTalent = false;
+  }
+
+  objToPush.spellCost = await parseSpellCost(toolTipTable);
+  if (objToPush.spellCost === undefined || objToPush.spellCost === null) {
+    delete objToPush.spellCost;
+  }
+
+  objToPush.spellCastTime = await parseCastTime(toolTipTable);
+  if (
+    objToPush.spellCastTime === undefined ||
+    objToPush.spellCastTime === null
+  ) {
+    delete objToPush.spellCastTime;
+  }
+
+  objToPush.spellRange = await parseRange(toolTipTable);
+  if (objToPush.spellRange === undefined || objToPush.spellRange === null) {
+    delete objToPush.spellRange;
+  }
+
+  objToPush.spellCD = await parseCD(toolTipTable);
+  if (objToPush.spellCD === undefined || objToPush.spellCD === null) {
+    delete objToPush.spellCD;
+  }
+
+  objToPush.classRequirement = await parseClassRequirement(toolTipTable);
+  if (
+    objToPush.classRequirement === undefined ||
+    objToPush.classRequirement === null
+  ) {
+    delete objToPush.classRequirement;
+  }
+
+  objToPush.levelRequirement = await parseLevelRequirement(toolTipTable);
+  if (
+    objToPush.levelRequirement === undefined ||
+    objToPush.levelRequirement === null
+  ) {
+    delete objToPush.levelRequirement;
+  }
+
+  objToPush.weaponRequirement = await parseWeaponRequirement(toolTipTable);
+  if (
+    objToPush.weaponRequirement === undefined ||
+    objToPush.weaponRequirement === null
+  ) {
+    delete objToPush.weaponRequirement;
+  }
+
+  objToPush.description = await parseDescription(toolTipTable);
+  if (objToPush.description === undefined || objToPush.description === null) {
+    delete objToPush.description;
+  }
+  console.log(
+    "----------------------------------------------------------------------"
+  );
+  console.log(objToPush);
+  console.log(
+    "----------------------------------------------------------------------"
+  );
+  return objToPush;
+}
+
 async function scrapeThenWriteToJSON() {
   let resultOfScrape = await scrapeSpellInfo();
   let dataComplete = JSON.stringify(resultOfScrape[0]);
@@ -24,174 +420,18 @@ async function scrapeSpellInfo() {
   let arrayOfFailedSpellIDs = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 0; i < 15; i++) {
+  for (let i = 1; i < 1000; i++) {
     try {
       await driver.get(`https://tbc.wowhead.com/spell=${i}`);
-      let objToPush = {};
-
-      objToPush.ID = i;
-
-      try {
-        objToPush.spellName = await driver
-          .findElement(
-            By.xpath("/html/body/div[5]/div/div/div[2]/div[3]/div[3]/h1")
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.rank = await driver
-          .findElement(By.xpath(`//*[text()='${"Rank"}']`))
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.isTalent = await driver
-          .findElement(
-            By.xpath("/html/body/div[5]/div/div/div[2]/div[3]/div[3]/h1")
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        try {
-          objToPush.spellCost = await driver
-            .findElement(By.xpath(`//*[text()='${"Rage"}']`))
-            .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        }
-        try {
-          objToPush.spellCost = await driver
-            .findElement(By.xpath(`//*[text()='${"Focus"}']`))
-            .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        }
-        try {
-          objToPush.spellCost = await driver
-            .findElement(By.xpath(`//*[text()='${"Energy"}']`))
-            .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        }
-        try {
-          objToPush.spellCost = await driver
-            .findElement(By.xpath(`//*[text()='${"Combo Points"}']`))
-            .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        }
-        try {
-          objToPush.spellCost = await driver
-            .findElement(By.xpath(`//*[text()='${"Happiness"}']`))
-            .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        }
-        try {
-          objToPush.spellCost = await driver
-            .findElement(By.xpath(`//*[text()='${"Mana"}']`))
-            .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        
-        try {
-          objToPush.spellRange = await driver
-          .findElement(
-            By.xpath(`//*[text()='${"yd range"}']`)
-          )
-          .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        } try {
-          objToPush.spellRange = await driver
-          .findElement(
-            By.xpath(`//*[text()='${"Melee Range"}']`)
-          )
-          .getAttribute("innerText");
-        } catch (error) {
-          console.log(error);
-        }
-
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.spellCastTime = await driver
-          .findElement(
-            By.xpath(`//*[text()='${"cast"}']`)
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.spellCD = await driver
-          .findElement(
-            By.xpath(`//*[text()='${"cooldown"}']`)
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.spellClassRequirement = await driver
-          .findElement(
-            By.xpath("/html/body/div[5]/div/div/div[2]/div[4]/div[3]/div[4]/table/tbody/tr[1]/td/table[1]/tbody/tr/td/div[2]")
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.spellLevelRequirement = await driver
-          .findElement(
-            By.xpath(`//*[text()='${"Requires level"}']`)
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.spellWeaponRequirement = await driver
-          .findElement(
-            By.xpath(`//*[text()='${"Weapon"}']`)
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-      try {
-        objToPush.spellDescription = await driver
-          .findElement(
-            By.xpath("/html/body/div[5]/div/div/div[2]/div[4]/div[3]/div[4]/table/tbody/tr[1]/td/table[2]/tbody/tr/td/div")
-          )
-          .getAttribute("innerText");
-      } catch (error) {
-        console.log(error);
-      }
-
-      console.log(objToPush);
-      arrayOfScrapedData.push(objToPush);
-      
+      const dataToPushToArray = await parseToolTipInOrder(i, driver);
+      arrayOfScrapedData.push(dataToPushToArray);
     } catch (error) {
-      console.log(error);
       arrayOfFailedSpellIDs.push(i);
-      console.log(`No spell with id: ${i}`);
+      console.log(`Spell ID: ${i} doesn't exist`);
     }
   }
   console.log(arrayOfScrapedData);
   console.log(arrayOfFailedSpellIDs);
-
   return [arrayOfScrapedData, arrayOfFailedSpellIDs];
 }
 
