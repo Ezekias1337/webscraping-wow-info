@@ -237,34 +237,24 @@ async function parseCD(htmlToParse) {
   }
 }
 
-async function parseClassRequirement(htmlToParse) {
+async function parseClassRequirement(driver) {
   try {
-    const thElementList = await htmlToParse.findElements(
-      By.className("wowhead-tooltip-requirements")
+    const infoBoxContents = await driver.findElements(
+      By.className("infobox-inner-table")
     );
-
-    for (let [index, item] of thElementList.entries()) {
-      const itemToPushToObj = await item.getAttribute("innerHTML");
-
-      if (
-        itemToPushToObj.includes("Druid") ||
-        itemToPushToObj.includes("Hunter") ||
-        itemToPushToObj.includes("Mage") ||
-        itemToPushToObj.includes("Paladin") ||
-        itemToPushToObj.includes("Priest") ||
-        itemToPushToObj.includes("Rogue") ||
-        itemToPushToObj.includes("Shaman") ||
-        itemToPushToObj.includes("Warlock") ||
-        itemToPushToObj.includes("Warrior")
-      ) {
-        const spellClassRequirement = itemToPushToObj;
-        return spellClassRequirement;
-      }
-    }
-  } catch (error) {
-    console.log("No class requirement for this spell");
-    return null;
-  }
+    const elementWithPotentialClassRequirements =
+      await infoBoxContents[0].findElement(
+        By.xpath("//div[contains(text(), 'Classes:')]")
+      );
+    const elementWithPotentialClassRequirementsInnerText =
+      await elementWithPotentialClassRequirements.getAttribute("innerText");
+    //Removes escape character if it's present in string
+      const parsedString = elementWithPotentialClassRequirementsInnerText.replace(/\n/g, "")
+      const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ")
+      console.log("final class requirement string", parsedStringNoDoubleSpace)
+      return parsedStringNoDoubleSpace
+  } catch (error) {}
+  return null;
 }
 
 async function parseLevelRequirement(htmlToParse) {
@@ -329,7 +319,11 @@ async function parseDescription(htmlToParse) {
         const spellDescriptionHTMLRemoved = await item.getAttribute(
           "innerText"
         );
-        return spellDescriptionHTMLRemoved;
+        const invisibleCharactersRemoved = spellDescriptionHTMLRemoved.replace(
+          " ",
+          ""
+        );
+        return invisibleCharactersRemoved;
       } else {
         return spellDescription;
       }
@@ -341,12 +335,13 @@ async function parseDescription(htmlToParse) {
 }
 
 async function parseToolTipInOrder(i, driver) {
-  const tooltipXPATH =
-    "/html/body/div[5]/div/div/div[2]/div[3]/div[3]/div[4]/table";
   let objToPush = {};
   objToPush.ID = i;
 
-  const toolTipTable = await driver.findElement(By.xpath(tooltipXPATH));
+  const toolTipTableParent = await driver.findElements(
+    By.className("wowhead-tooltip")
+  );
+  const toolTipTable = toolTipTableParent[0];
 
   objToPush.spellName = await parseSpellName(toolTipTable);
   if (objToPush.spellName === undefined || objToPush.spellName === null) {
@@ -386,7 +381,7 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.spellCD;
   }
 
-  objToPush.classRequirement = await parseClassRequirement(toolTipTable);
+  objToPush.classRequirement = await parseClassRequirement(driver);
   if (
     objToPush.classRequirement === undefined ||
     objToPush.classRequirement === null
@@ -429,14 +424,14 @@ async function scrapeThenWriteToJSON() {
   let dataComplete = JSON.stringify(resultOfScrape[0]);
   let dataFailed = JSON.stringify(resultOfScrape[1]);
   let dataPotentiallySkipped = JSON.stringify(resultOfScrape[2]);
-  let dataValidIDsFailedScrape = JSON.stringify(resultOfScrape[3]);
+  let dataOfIDsMostLikelyExisting = JSON.stringify(resultOfScrape[3]);
 
   fs.writeFileSync("successfulScrapeResults.json", dataComplete);
   fs.writeFileSync("unsuccessfulScrapeResults.json", dataFailed);
   fs.writeFileSync("potentiallySkippedResults.json", dataPotentiallySkipped);
   fs.writeFileSync(
-    "validIDsFailedScrapeResults.json",
-    dataValidIDsFailedScrape
+    "arrayDataOfIDsMostLikelyExisting.json",
+    dataOfIDsMostLikelyExisting
   );
 }
 
@@ -445,53 +440,51 @@ async function scrapeSpellInfo() {
   let arrayOfScrapedData = [];
   let arrayOfFailedSpellIDs = [];
   let arrayOfPotentiallySkippedIDs = [];
-  let arrayOfValidIDsThatFailedToScrape = [];
+  let arrayOfIDsMostLikelyExisting = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 0; i < 2500; i++) {
+  for (let i = 196; i < 200; i++) {
     let continueCodeExecution = false;
 
+    //check for element with warning that id doesn't exist in db
+    //if try statement is successful, element doesn't exist in db
     try {
       await driver.get(`https://tbc.wowhead.com/spell=${i}`);
-      const dataToPushToArray = await parseToolTipInOrder(i, driver);
-      arrayOfScrapedData.push(dataToPushToArray);
+      const notFoundElement = await driver.findElement(
+        By.xpath(
+          "//div[contains(text(), 'It may have been removed from the game.')]"
+        )
+      );
+      arrayOfFailedSpellIDs.push(i);
+      console.log(`Spell ID: ${i}, confirmed to not exist`);
     } catch (error) {
-      arrayOfPotentiallySkippedIDs.push(i);
+      //if in this catch statement, couldn't find the element, most likely exists
+      arrayOfIDsMostLikelyExisting.push(i);
       continueCodeExecution = true;
-      console.log(`Spell ID: ${i}, Failed to scrape data!`);
+      console.log(`Spell ID: ${i} did not find notFoundElement.`);
     }
 
+    //this only executes if the notFoundElement was failed to be found in DOM
     if (continueCodeExecution === true) {
       try {
-        const notFoundElementArray = await driver.findElements(
-          By.className("database-detail-page-not-found-message")
-        );
-        if (notFoundElementArray && notFoundElementArray.length > 0) {
-          arrayOfFailedSpellIDs.push(i);
-          console.log(`Spell ID: ${i}, confirmed to not exist.`);
-        } else {
-          arrayOfValidIDsThatFailedToScrape.push(i);
-          console.log(
-            `Spell ID: ${i} does exist, but failed to grab data for some other reason.`
-          );
-        }
+        const dataToPushToArray = await parseToolTipInOrder(i, driver);
+        arrayOfScrapedData.push(dataToPushToArray);
       } catch (error) {
-        arrayOfValidIDsThatFailedToScrape.push(i);
-        console.log(
-          `Spell ID: ${i} does exist, but failed to grab data for some other reason.`
-        );
+        arrayOfPotentiallySkippedIDs.push(i);
+        console.log(error);
+        console.log(`Spell ID: ${i}, Failed to scrape data!`);
       }
     }
   }
   console.log(arrayOfScrapedData);
   console.log(arrayOfFailedSpellIDs);
   console.log(arrayOfPotentiallySkippedIDs);
-  console.log(arrayOfValidIDsThatFailedToScrape);
+  console.log(arrayOfIDsMostLikelyExisting);
   return [
     arrayOfScrapedData,
     arrayOfFailedSpellIDs,
     arrayOfPotentiallySkippedIDs,
-    arrayOfValidIDsThatFailedToScrape,
+    arrayOfIDsMostLikelyExisting,
   ];
 }
 
