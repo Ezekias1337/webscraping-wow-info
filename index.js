@@ -1,13 +1,6 @@
 const { Builder, By, Key, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
 const fs = require("fs");
-//const options = new chrome.Options()
-
-function generateDelayNumber() {
-  const amountToSleep = Math.floor(Math.random() * (8000 - 5000 + 1) + 5000);
-  console.log(`Sleeping for: ${amountToSleep / 1000} seconds.`, amountToSleep);
-  return amountToSleep;
-}
 
 async function parseSpellName(htmlToParse) {
   try {
@@ -90,7 +83,6 @@ async function parseSpellCost(htmlToParse) {
           //Removed first item from array, because it's unneeded
           itemStringSplit.shift();
           for (const individualElement of itemStringSplit) {
-            console.log(individualElement, "passed html test");
             if (
               individualElement.includes("Energy") ||
               individualElement.includes("energy") ||
@@ -101,10 +93,6 @@ async function parseSpellCost(htmlToParse) {
               individualElement.includes("Mana") ||
               individualElement.includes("mana")
             ) {
-              console.log(
-                individualElement,
-                "passed html test and energy cost"
-              );
               if (individualElement.includes("\t")) {
                 for (const individualElementSplitToArray of individualElement.split(
                   "\t"
@@ -282,7 +270,6 @@ async function parseClassRequirement(driver) {
       ""
     );
     const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ");
-    console.log("final class requirement string", parsedStringNoDoubleSpace);
     return parsedStringNoDoubleSpace;
   } catch (error) {}
   return null;
@@ -475,7 +462,7 @@ async function scrapeSpellInfo() {
   let arrayOfIDsMostLikelyExisting = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 597; i < 598; i++) {
+  for (let i = 1; i < 250; i++) {
     let continueCodeExecution = false;
 
     //check for element with warning stating that id doesn't exist in db
@@ -503,7 +490,6 @@ async function scrapeSpellInfo() {
         arrayOfScrapedData.push(dataToPushToArray);
       } catch (error) {
         arrayOfPotentiallySkippedIDs.push(i);
-        console.log(error);
         console.log(`Spell ID: ${i}, Failed to scrape data!`);
       }
     }
