@@ -9,8 +9,6 @@ function generateDelayNumber() {
   return amountToSleep;
 }
 
-async function checkIfSpellExists() {}
-
 async function parseSpellName(htmlToParse) {
   try {
     const whttNameElementList = await htmlToParse.findElements(
@@ -75,14 +73,8 @@ async function parseSpellCost(htmlToParse) {
         itemToPushToObj.includes("Energy") ||
         itemToPushToObj.includes("Rage") ||
         itemToPushToObj.includes("Focus") ||
-        itemToPushToObj.includes("Mana") /*  &&
-        !(
-          itemToPushToObj.includes("Instant") ||
-          itemToPushToObj.includes("sec cast") ||
-          itemToPushToObj.includes("Channeled")
-        ) */
+        itemToPushToObj.includes("Mana")
       ) {
-        console.log(index, itemToPushToObj);
         if (
           itemToPushToObj.includes("<br>") ||
           itemToPushToObj.includes("<table") ||
@@ -98,15 +90,29 @@ async function parseSpellCost(htmlToParse) {
           //Removed first item from array, because it's unneeded
           itemStringSplit.shift();
           for (const individualElement of itemStringSplit) {
+            //console.log(index, individualElement, "passed html test")
             if (
               individualElement.includes("Energy") ||
               individualElement.includes("Rage") ||
               individualElement.includes("Focus") ||
               individualElement.includes("Mana")
             ) {
-              return individualElement;
-            } else {
-              return null;
+              if (individualElement.includes("\t")) {
+                for (const individualElementSplitToArray of individualElement.split(
+                  "\t"
+                )) {
+                  if (
+                    individualElementSplitToArray.includes("Energy") ||
+                    individualElementSplitToArray.includes("Rage") ||
+                    individualElementSplitToArray.includes("Focus") ||
+                    individualElementSplitToArray.includes("Mana")
+                  ) {
+                    return individualElementSplitToArray;
+                  }
+                }
+              } else {
+                return individualElement;
+              }
             }
           }
 
@@ -312,8 +318,21 @@ async function parseDescription(htmlToParse) {
     );
 
     for (let [index, item] of spellDescriptionElementList.entries()) {
-      const itemToPushToObj = await item.getAttribute("innerHTML");
-      objToPush.spellDescription = itemToPushToObj;
+      const spellDescription = await item.getAttribute("innerHTML");
+      if (
+        spellDescription.includes("&nbsp;") ||
+        spellDescription.includes("<!--") ||
+        spellDescription.includes("-->") ||
+        spellDescription.includes("<span") ||
+        spellDescription.includes(">[(")
+      ) {
+        const spellDescriptionHTMLRemoved = await item.getAttribute(
+          "innerText"
+        );
+        return spellDescriptionHTMLRemoved;
+      } else {
+        return spellDescription;
+      }
     }
   } catch (error) {
     console.log("No description for this spell");
@@ -409,30 +428,71 @@ async function scrapeThenWriteToJSON() {
   let resultOfScrape = await scrapeSpellInfo();
   let dataComplete = JSON.stringify(resultOfScrape[0]);
   let dataFailed = JSON.stringify(resultOfScrape[1]);
+  let dataPotentiallySkipped = JSON.stringify(resultOfScrape[2]);
+  let dataValidIDsFailedScrape = JSON.stringify(resultOfScrape[3]);
 
   fs.writeFileSync("successfulScrapeResults.json", dataComplete);
   fs.writeFileSync("unsuccessfulScrapeResults.json", dataFailed);
+  fs.writeFileSync("potentiallySkippedResults.json", dataPotentiallySkipped);
+  fs.writeFileSync(
+    "validIDsFailedScrapeResults.json",
+    dataValidIDsFailedScrape
+  );
 }
 
 async function scrapeSpellInfo() {
   let driver = await new Builder().forBrowser("chrome").build();
   let arrayOfScrapedData = [];
   let arrayOfFailedSpellIDs = [];
+  let arrayOfPotentiallySkippedIDs = [];
+  let arrayOfValidIDsThatFailedToScrape = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 1; i < 1000; i++) {
+  for (let i = 0; i < 2500; i++) {
+    let continueCodeExecution = false;
+
     try {
       await driver.get(`https://tbc.wowhead.com/spell=${i}`);
       const dataToPushToArray = await parseToolTipInOrder(i, driver);
       arrayOfScrapedData.push(dataToPushToArray);
     } catch (error) {
-      arrayOfFailedSpellIDs.push(i);
-      console.log(`Spell ID: ${i} doesn't exist`);
+      arrayOfPotentiallySkippedIDs.push(i);
+      continueCodeExecution = true;
+      console.log(`Spell ID: ${i}, Failed to scrape data!`);
+    }
+
+    if (continueCodeExecution === true) {
+      try {
+        const notFoundElementArray = await driver.findElements(
+          By.className("database-detail-page-not-found-message")
+        );
+        if (notFoundElementArray && notFoundElementArray.length > 0) {
+          arrayOfFailedSpellIDs.push(i);
+          console.log(`Spell ID: ${i}, confirmed to not exist.`);
+        } else {
+          arrayOfValidIDsThatFailedToScrape.push(i);
+          console.log(
+            `Spell ID: ${i} does exist, but failed to grab data for some other reason.`
+          );
+        }
+      } catch (error) {
+        arrayOfValidIDsThatFailedToScrape.push(i);
+        console.log(
+          `Spell ID: ${i} does exist, but failed to grab data for some other reason.`
+        );
+      }
     }
   }
   console.log(arrayOfScrapedData);
   console.log(arrayOfFailedSpellIDs);
-  return [arrayOfScrapedData, arrayOfFailedSpellIDs];
+  console.log(arrayOfPotentiallySkippedIDs);
+  console.log(arrayOfValidIDsThatFailedToScrape);
+  return [
+    arrayOfScrapedData,
+    arrayOfFailedSpellIDs,
+    arrayOfPotentiallySkippedIDs,
+    arrayOfValidIDsThatFailedToScrape,
+  ];
 }
 
 scrapeThenWriteToJSON();

@@ -1,3 +1,7 @@
 successfulScrapeResults copy.json
 successfulScrapeResults.json
 unsuccessfulScrapeResults.json
+validIDsFailedScrapeResults.json
+unsuccessfulScrapeResults.json
+successfulScrapeResults.json
+potentiallySkippedResults.json

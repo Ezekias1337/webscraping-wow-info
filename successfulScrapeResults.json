@@ -7,20 +7,50 @@
     "spellCastTime": "10 sec cast"
   },
   {
-    "ID": 4,
-    "spellName": "Word of Recall Other",
+    "ID": 3,
+    "spellName": "Word of Mass Recall (OLD)",
     "isTalent": false,
     "spellCost": "10 Mana",
+    "spellCastTime": "20 sec cast"
+  },
+  {
+    "ID": 5,
+    "spellName": "Death Touch",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "description": "Instantly Kills the target.  I hope you feel good about yourself now....."
+  },
+  {
+    "ID": 7,
+    "spellName": "Suicide",
+    "isTalent": false,
     "spellCastTime": "Instant"
   },
   {
     "ID": 10,
     "spellName": "Blizzard",
     "isTalent": false,
+    "spellCost": "320 Mana",
     "spellCastTime": "Channeled (8 sec cast)",
     "spellRange": "30 yd range",
     "classRequirement": "Requires Mage",
-    "levelRequirement": "Requires level 20"
+    "levelRequirement": "Requires level 20",
+    "description": "Ice shards pelt the target area doing 208 Frost damage over 8 sec."
+  },
+  {
+    "ID": 11,
+    "spellName": "Frostbolt of Ages",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "classRequirement": "Requires Mage",
+    "levelRequirement": "Requires level 1",
+    "description": "Deals 1000 Frost damage to the target."
+  },
+  {
+    "ID": 12,
+    "spellName": "Hot Foot (TEST)",
+    "isTalent": false,
+    "spellCastTime": "Instant"
   },
   {
     "ID": 13,
@@ -44,6 +74,18 @@
     "spellCastTime": "Instant"
   },
   {
+    "ID": 17,
+    "spellName": "Power Word: Shield",
+    "isTalent": false,
+    "spellCost": "45 Mana",
+    "spellCastTime": "Instant",
+    "spellRange": "40 yd range",
+    "spellCD": "4 sec cooldown",
+    "classRequirement": "Requires Priest",
+    "levelRequirement": "Requires level 6",
+    "description": "Draws on the soul of the party member to shield them, absorbing 48 damage.  Lasts 30 sec.  While the shield holds, spellcasting will not be interrupted by damage.  Once shielded, the target cannot be shielded again for 15 sec."
+  },
+  {
     "ID": 18,
     "spellName": "Heal Self (TEST)",
     "isTalent": false,
@@ -65,10 +107,254 @@
     "spellCastTime": "Instant"
   },
   {
-    "ID": 26,
-    "spellName": "Bind Self (TEST)",
+    "ID": 25,
+    "spellName": "Stun",
+    "isTalent": false,
+    "spellCastTime": "Instant"
+  },
+  {
+    "ID": 27,
+    "spellName": "Goldshire Portal",
     "isTalent": false,
     "spellCost": "10 Mana",
+    "spellCastTime": "5 sec cast",
+    "spellRange": "20 yd range",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 31,
+    "spellName": "Teleport Goldshire",
+    "isTalent": false,
+    "spellCastTime": "2 sec cast",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 33,
+    "spellName": "Teleport Westfall",
+    "isTalent": false,
+    "spellCastTime": "2 sec cast",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 34,
+    "spellName": "Teleport Duskwood",
+    "isTalent": false,
+    "spellCastTime": "2 sec cast",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 35,
+    "spellName": "Teleport Elwynn",
+    "isTalent": false,
+    "spellCastTime": "2 sec cast",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 43,
+    "spellName": "Berserk",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 45,
+    "spellName": "War Stomp",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 45",
+    "description": "Knocks nearby enemies back."
+  },
+  {
+    "ID": 47,
+    "spellName": "Sprint (TEST)",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 49,
+    "spellName": "Healing Touch (TEST)",
+    "isTalent": false,
     "spellCastTime": "Instant"
+  },
+  {
+    "ID": 50,
+    "spellName": "Show Dot Variable",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 1",
+    "description": "Dumps the dot variables of the current target to the console."
+  },
+  {
+    "ID": 53,
+    "spellName": "Backstab",
+    "isTalent": false,
+    "spellCost": "60 Energy",
+    "spellCastTime": "Instant",
+    "spellRange": "Melee Range",
+    "classRequirement": "Requires Rogue",
+    "levelRequirement": "Requires level 4",
+    "description": "Backstab the target, causing 150% weapon damage plus 15 to the target.  Must be behind the target.  Requires a dagger in the main hand.  Awards 1 combo point."
+  },
+  {
+    "ID": 56,
+    "spellName": "Stun",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 50",
+    "description": "Stuns target for 3 sec."
+  },
+  {
+    "ID": 58,
+    "spellName": "Magic Missile (TEST)",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "Instant",
+    "spellRange": "40 yd range"
+  },
+  {
+    "ID": 59,
+    "spellName": "Normal bow shot (TEST)",
+    "isTalent": false,
+    "spellCastTime": "0.25 sec cast"
+  },
+  {
+    "ID": 60,
+    "spellName": "Long bow shot (TEST)",
+    "isTalent": false,
+    "spellCastTime": "Instant"
+  },
+  {
+    "ID": 65,
+    "spellName": "Haste",
+    "isTalent": false,
+    "spellCost": "14 Mana",
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 12",
+    "description": "Increases your melee haste rating by 20 for 30 sec."
+  },
+  {
+    "ID": 66,
+    "spellName": "Invisibility",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "classRequirement": "Requires Mage",
+    "levelRequirement": "Requires level 68",
+    "description": "Fades the caster to invisibility over 5 sec, reducing threat each second.  The effect is cancelled if you perform or receive any actions.  While invisible, you can only see other invisible targets and those whom can see invisible.  Lasts 20 sec."
+  },
+  {
+    "ID": 67,
+    "spellName": "Vindication",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "classRequirement": "Requires Paladin"
+  },
+  {
+    "ID": 68,
+    "spellName": "Editor Test Spell",
+    "isTalent": false,
+    "spellCost": "10 Mana",
+    "spellCastTime": "0.25 sec cast",
+    "spellRange": "20 yd range",
+    "spellCD": "10 sec cooldown"
+  },
+  {
+    "ID": 71,
+    "spellName": "Defensive Stance",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "spellCD": "1 sec cooldown",
+    "classRequirement": "Requires Warrior",
+    "levelRequirement": "Requires level 10",
+    "description": "A defensive combat stance.  Decreases damage taken by 10% and damage caused by 10%.  Increases threat generated."
+  },
+  {
+    "ID": 72,
+    "spellName": "Shield Bash",
+    "isTalent": false,
+    "spellCost": "10 Rage",
+    "spellCastTime": "Instant cast",
+    "spellRange": "Melee Range",
+    "spellCD": "12 sec cooldown",
+    "classRequirement": "Requires Warrior",
+    "levelRequirement": "Requires level 12",
+    "description": "Bashes the target with your shield for 6 damage.  It also interrupts spellcasting and prevents any spell in that school from being cast for 6 sec."
+  },
+  {
+    "ID": 75,
+    "spellName": "Auto Shot",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "classRequirement": "Requires Hunter",
+    "levelRequirement": "Requires level 1",
+    "weaponRequirement": "Requires Ranged Weapon",
+    "description": "Automatically shoots the target until cancelled."
+  },
+  {
+    "ID": 77,
+    "spellName": "Turtle's Shell",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "levelRequirement": "Requires level 1"
+  },
+  {
+    "ID": 78,
+    "spellName": "Heroic Strike",
+    "isTalent": false,
+    "spellCost": "15 Rage",
+    "spellRange": "Melee Range",
+    "classRequirement": "Requires Warrior",
+    "levelRequirement": "Requires level 1",
+    "weaponRequirement": "Requires Melee Weapon",
+    "description": "A strong attack that increases melee damage by 11 and causes a high amount of threat."
+  },
+  {
+    "ID": 81,
+    "spellName": "Dodge",
+    "isTalent": false,
+    "levelRequirement": "Requires level 1",
+    "description": "Gives a chance to dodge enemy melee attacks."
+  },
+  {
+    "ID": 87,
+    "spellName": "Automation Mechanic Immunity",
+    "isTalent": false,
+    "spellCastTime": "Instant",
+    "description": "Makes you immune to all spell mechanics.  Used in Automation scripts to give the bot immunity to negative effects while still being able to interact with objects."
+  },
+  {
+    "ID": 89,
+    "spellName": "Cripple",
+    "isTalent": false,
+    "spellCost": "210 Mana",
+    "spellCastTime": "Instant",
+    "spellRange": "30 yd range",
+    "spellCD": "30 sec cooldown",
+    "levelRequirement": "Requires level 60",
+    "description": "Cripples the target, reducing movement speed by 40%, increasing time between melee and ranged attacks by 45%.  Lasts 20 sec."
+  },
+  {
+    "ID": 91,
+    "spellName": "Savage Assault",
+    "isTalent": false,
+    "spellCD": "30 sec cooldown",
+    "levelRequirement": "Requires level 4"
+  },
+  {
+    "ID": 96,
+    "spellName": "Dismember",
+    "isTalent": false,
+    "levelRequirement": "Requires level 1",
+    "description": "Increases the damage of your next melee swing by 100 and causes the target to bleed"
+  },
+  {
+    "ID": 99,
+    "spellName": "Demoralizing Roar",
+    "isTalent": false,
+    "spellCost": "10 Rage",
+    "spellCastTime": "Instant cast",
+    "classRequirement": "Requires Druid",
+    "levelRequirement": "Requires level 10",
+    "description": "The druid roars, decreasing nearby enemies' melee attack power by 40.  Lasts 30 sec."
   }
 ]
