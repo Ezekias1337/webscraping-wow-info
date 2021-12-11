@@ -338,7 +338,7 @@ async function parseDescription(htmlToParse) {
           "innerText"
         );
         const parsedString = spellDescriptionHTMLRemoved.replace(/\n/g, " ");
-        const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ");
+        const parsedStringNoDoubleSpace = parsedString.replace(/ /g, "");
 
         return parsedStringNoDoubleSpace;
       } else {
@@ -441,16 +441,11 @@ async function scrapeThenWriteToJSON() {
   let dataComplete = JSON.stringify(resultOfScrape[0]);
   let dataFailed = JSON.stringify(resultOfScrape[1]);
   let dataPotentiallySkipped = JSON.stringify(resultOfScrape[2]);
-  let dataOfIDsMostLikelyExisting = JSON.stringify(resultOfScrape[3]);
-  let driver = resultOfScrape[4];
+  let driver = resultOfScrape[3];
 
   fs.writeFileSync("successfulScrapeResults.json", dataComplete);
   fs.writeFileSync("unsuccessfulScrapeResults.json", dataFailed);
   fs.writeFileSync("potentiallySkippedResults.json", dataPotentiallySkipped);
-  fs.writeFileSync(
-    "arrayDataOfIDsMostLikelyExisting.json",
-    dataOfIDsMostLikelyExisting
-  );
   await driver.close();
 }
 
@@ -459,7 +454,6 @@ async function scrapeSpellInfo() {
   let arrayOfScrapedData = [];
   let arrayOfFailedSpellIDs = [];
   let arrayOfPotentiallySkippedIDs = [];
-  let arrayOfIDsMostLikelyExisting = [];
 
   //for (let i = 0; i < 45000; i++) {
   for (let i = 1; i < 250; i++) {
@@ -477,8 +471,7 @@ async function scrapeSpellInfo() {
       arrayOfFailedSpellIDs.push(i);
       console.log(`Spell ID: ${i}, confirmed to not exist`);
     } catch (error) {
-      //if in this catch statement, couldn't find the element, most likely exists
-      arrayOfIDsMostLikelyExisting.push(i);
+      //if in this catch statement, couldn't find the element, meaning id exists
       continueCodeExecution = true;
       console.log(`Spell ID: ${i} did not find notFoundElement.`);
     }
@@ -498,15 +491,13 @@ async function scrapeSpellInfo() {
   console.log(
     arrayOfScrapedData,
     arrayOfFailedSpellIDs,
-    arrayOfPotentiallySkippedIDs,
-    arrayOfIDsMostLikelyExisting
+    arrayOfPotentiallySkippedIDs
   );
 
   return [
     arrayOfScrapedData,
     arrayOfFailedSpellIDs,
     arrayOfPotentiallySkippedIDs,
-    arrayOfIDsMostLikelyExisting,
     driver
   ];
 }
