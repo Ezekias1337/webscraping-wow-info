@@ -27,9 +27,8 @@ async function parseRank(htmlToParse) {
 
     for (let [index, item] of q0ElementList.entries()) {
       const itemToPushToObj = await item.getAttribute("innerHTML");
-
       if (itemToPushToObj.includes("Rank")) {
-        let rankStrSliced = objToPush.rank.slice(0, 6);
+        let rankStrSliced = itemToPushToObj.slice(0, 6);
         const spellRank = rankStrSliced;
         return spellRank;
       }
@@ -295,6 +294,26 @@ async function parseLevelRequirement(htmlToParse) {
   }
 }
 
+async function parseStanceOrFormRequirement(htmlToParse) {
+  try {
+    const thElementList = await htmlToParse.findElements(
+      By.className("wowhead-tooltip-requirements")
+    );
+
+    for (let [index, item] of thElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerHTML");
+
+      if (itemToPushToObj.includes("Form") || itemToPushToObj.includes("Stance")) {
+        const stanceOrFormRequirement = itemToPushToObj;
+        return stanceOrFormRequirement;
+      }
+    }
+  } catch (error) {
+    console.log("No level requirement for this spell");
+    return null;
+  }
+}
+
 async function parseWeaponRequirement(htmlToParse) {
   try {
     const thElementList = await htmlToParse.findElements(
@@ -414,6 +433,14 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.levelRequirement;
   }
 
+  objToPush.stanceOrFormRequirement = await parseStanceOrFormRequirement(toolTipTable);
+  if (
+    objToPush.stanceOrFormRequirement === undefined ||
+    objToPush.stanceOrFormRequirement === null
+  ) {
+    delete objToPush.stanceOrFormRequirement;
+  }
+
   objToPush.weaponRequirement = await parseWeaponRequirement(toolTipTable);
   if (
     objToPush.weaponRequirement === undefined ||
@@ -456,7 +483,7 @@ async function scrapeSpellInfo() {
   let arrayOfPotentiallySkippedIDs = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 1; i < 250; i++) {
+  for (let i = 0; i < 10000; i++) {
     let continueCodeExecution = false;
 
     //check for element with warning stating that id doesn't exist in db
