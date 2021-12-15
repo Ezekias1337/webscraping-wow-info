@@ -56,65 +56,91 @@ async function parseTalent(htmlToParse) {
   }
 }
 
+//This one gets called for a small amount of spells like 4741 which is a hunter pet spell
+async function parseTertiaryRequirement(htmlToParse) {
+  try {
+    const q0ElementList = await htmlToParse.findElements(By.css("b.q0"));
+
+    for (let [index, item] of q0ElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerText");
+      const tertiaryRequirement = itemToPushToObj;
+
+      if (
+        !(
+          tertiaryRequirement.includes("Rank") ||
+          tertiaryRequirement.includes("Talent") ||
+          tertiaryRequirement.includes("Level")
+        )
+      ) {
+        return tertiaryRequirement;
+      } else if (tertiaryRequirement.includes("\n")) {
+        for (const itemNested of tertiaryRequirement.split("\n")) {
+          if (
+            !(
+              itemNested.includes("Rank") ||
+              itemNested.includes("Talent") ||
+              itemNested.includes("Level")
+            )
+          ) {
+            return itemNested;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.log("No talent for this spell");
+    return false;
+  }
+}
+
 async function parseSpellCost(htmlToParse) {
   try {
     const tdElementList = await htmlToParse.findElements(By.css("td"));
     for (let [index, item] of tdElementList.entries()) {
-      const itemToPushToObj = await item.getAttribute("innerHTML");
+      const itemToPushToObj = await item.getAttribute("innerText");
       if (
         itemToPushToObj.includes("Energy") ||
+        itemToPushToObj.includes("energy") ||
         itemToPushToObj.includes("Rage") ||
+        itemToPushToObj.includes("rage") ||
         itemToPushToObj.includes("Focus") ||
-        itemToPushToObj.includes("Mana")
+        itemToPushToObj.includes("focus") ||
+        itemToPushToObj.includes("Mana") ||
+        itemToPushToObj.includes("mana")
       ) {
-        if (
-          itemToPushToObj.includes("<br>") ||
-          itemToPushToObj.includes("<table") ||
-          itemToPushToObj.includes("<div") ||
-          itemToPushToObj.includes("<a") ||
-          itemToPushToObj.includes("<b")
-        ) {
-          const refinedItemToPushToObjStringToSplit = await item.getAttribute(
-            "innerText"
-          );
-          const itemStringSplit =
-            refinedItemToPushToObjStringToSplit.split("\n");
-          //Removed first item from array, because it's unneeded
-          itemStringSplit.shift();
-          for (const individualElement of itemStringSplit) {
+        if (itemToPushToObj.includes("\t")) {
+          for (const itemNestedLoop of itemToPushToObj.split("\t")) {
             if (
-              individualElement.includes("Energy") ||
-              individualElement.includes("energy") ||
-              individualElement.includes("Rage") ||
-              individualElement.includes("rage") ||
-              individualElement.includes("Focus") ||
-              individualElement.includes("focus") ||
-              individualElement.includes("Mana") ||
-              individualElement.includes("mana")
+              itemNestedLoop.includes("Energy") ||
+              itemNestedLoop.includes("energy") ||
+              itemNestedLoop.includes("Rage") ||
+              itemNestedLoop.includes("rage") ||
+              itemNestedLoop.includes("Focus") ||
+              itemNestedLoop.includes("focus") ||
+              itemNestedLoop.includes("Mana") ||
+              itemNestedLoop.includes("mana")
             ) {
-              if (individualElement.includes("\t")) {
-                for (const individualElementSplitToArray of individualElement.split(
-                  "\t"
-                )) {
+              if (itemNestedLoop.includes("\n")) {
+                for (const itemNestedNestedLoop of itemNestedLoop.split("\n")) {
                   if (
-                    individualElementSplitToArray.includes("Energy") ||
-                    individualElementSplitToArray.includes("Rage") ||
-                    individualElementSplitToArray.includes("Focus") ||
-                    individualElementSplitToArray.includes("Mana")
+                    itemNestedNestedLoop.includes("Energy") ||
+                    itemNestedNestedLoop.includes("energy") ||
+                    itemNestedNestedLoop.includes("Rage") ||
+                    itemNestedNestedLoop.includes("rage") ||
+                    itemNestedNestedLoop.includes("Focus") ||
+                    itemNestedNestedLoop.includes("focus") ||
+                    itemNestedNestedLoop.includes("Mana") ||
+                    itemNestedNestedLoop.includes("mana")
                   ) {
-                    return individualElementSplitToArray;
+                    return itemNestedNestedLoop;
                   }
                 }
-              } else {
-                return individualElement;
               }
+              return itemNestedLoop;
             }
           }
-
-          return itemStringSplit;
-        } else {
-          const spellCost = itemToPushToObj;
-          return spellCost;
+        } else if (itemToPushToObj.length === 1) {
+          return itemToPushToObj;
         }
       }
     }
@@ -189,6 +215,22 @@ async function parseCastTime(htmlToParse) {
   } catch (error) {
     console.log("No cast time for this spell");
     return null;
+  }
+}
+
+async function parseReagents(htmlToParse) {
+  try {
+    const q1ElementList = await htmlToParse.findElements(By.css("div.q1"));
+
+    for (let [index, item] of q1ElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerText");
+      const reagentsRequirement = itemToPushToObj;
+
+      return reagentsRequirement;
+    }
+  } catch (error) {
+    console.log("No talent for this spell");
+    return false;
   }
 }
 
@@ -303,7 +345,10 @@ async function parseStanceOrFormRequirement(htmlToParse) {
     for (let [index, item] of thElementList.entries()) {
       const itemToPushToObj = await item.getAttribute("innerHTML");
 
-      if (itemToPushToObj.includes("Form") || itemToPushToObj.includes("Stance")) {
+      if (
+        itemToPushToObj.includes("Form") ||
+        itemToPushToObj.includes("Stance")
+      ) {
         const stanceOrFormRequirement = itemToPushToObj;
         return stanceOrFormRequirement;
       }
@@ -347,11 +392,13 @@ async function parseDescription(htmlToParse) {
     for (let [index, item] of spellDescriptionElementList.entries()) {
       const spellDescription = await item.getAttribute("innerHTML");
       if (
-        spellDescription.includes("&nbsp;") ||
         spellDescription.includes("<!--") ||
         spellDescription.includes("-->") ||
         spellDescription.includes("<span") ||
-        spellDescription.includes(">[(")
+        spellDescription.includes(">[(") ||
+        spellDescription.includes("<br") ||
+        spellDescription.includes("<") ||
+        spellDescription.includes(">")
       ) {
         const spellDescriptionHTMLRemoved = await item.getAttribute(
           "innerText"
@@ -394,6 +441,23 @@ async function parseToolTipInOrder(i, driver) {
     objToPush.isTalent = false;
   }
 
+  //Only check for pet family requirement if ability is not a talent
+  if (
+    (objToPush && objToPush.isTalent === undefined) ||
+    objToPush.isTalent === false
+  ) {
+    objToPush.tertiaryRequirement = await parseTertiaryRequirement(
+      toolTipTable
+    );
+    if (
+      objToPush.tertiaryRequirement === undefined ||
+      objToPush.tertiaryRequirement === null ||
+      objToPush.tertiaryRequirement === ""
+    ) {
+      delete objToPush.tertiaryRequirement;
+    }
+  }
+
   objToPush.spellCost = await parseSpellCost(toolTipTable);
   if (objToPush.spellCost === undefined || objToPush.spellCost === null) {
     delete objToPush.spellCost;
@@ -405,6 +469,11 @@ async function parseToolTipInOrder(i, driver) {
     objToPush.spellCastTime === null
   ) {
     delete objToPush.spellCastTime;
+  }
+
+  objToPush.reagents = await parseReagents(toolTipTable);
+  if (objToPush.reagents === undefined || objToPush.reagents === null) {
+    delete objToPush.reagents;
   }
 
   objToPush.spellRange = await parseRange(toolTipTable);
@@ -433,7 +502,9 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.levelRequirement;
   }
 
-  objToPush.stanceOrFormRequirement = await parseStanceOrFormRequirement(toolTipTable);
+  objToPush.stanceOrFormRequirement = await parseStanceOrFormRequirement(
+    toolTipTable
+  );
   if (
     objToPush.stanceOrFormRequirement === undefined ||
     objToPush.stanceOrFormRequirement === null
@@ -469,10 +540,21 @@ async function scrapeThenWriteToJSON() {
   let dataFailed = JSON.stringify(resultOfScrape[1]);
   let dataPotentiallySkipped = JSON.stringify(resultOfScrape[2]);
   let driver = resultOfScrape[3];
+  let errorMessageArray = resultOfScrape[4];
 
-  fs.writeFileSync("successfulScrapeResults.json", dataComplete);
-  fs.writeFileSync("unsuccessfulScrapeResults.json", dataFailed);
-  fs.writeFileSync("potentiallySkippedResults.json", dataPotentiallySkipped);
+  if (dataComplete.length > 0) {
+    fs.writeFileSync("successfulScrapeResults.json", dataComplete);
+  }
+  if (dataFailed.length > 0) {
+    fs.writeFileSync("unsuccessfulScrapeResults.json", dataFailed);
+  }
+  if (dataPotentiallySkipped.length > 0) {
+    fs.writeFileSync("potentiallySkippedResults.json", dataPotentiallySkipped);
+  }
+  if (errorMessageArray.length > 0) {
+    fs.writeFileSync("errorMessageLogs.json", errorMessageArray);
+  }
+
   await driver.close();
 }
 
@@ -481,9 +563,10 @@ async function scrapeSpellInfo() {
   let arrayOfScrapedData = [];
   let arrayOfFailedSpellIDs = [];
   let arrayOfPotentiallySkippedIDs = [];
+  let arrayOfErrorMessages = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 11500; i < 30000; i++) {
     let continueCodeExecution = false;
 
     //check for element with warning stating that id doesn't exist in db
@@ -500,7 +583,6 @@ async function scrapeSpellInfo() {
     } catch (error) {
       //if in this catch statement, couldn't find the element, meaning id exists
       continueCodeExecution = true;
-      console.log(`Spell ID: ${i} did not find notFoundElement.`);
     }
 
     //this only executes if the notFoundElement was failed to be found in DOM
@@ -510,6 +592,7 @@ async function scrapeSpellInfo() {
         arrayOfScrapedData.push(dataToPushToArray);
       } catch (error) {
         arrayOfPotentiallySkippedIDs.push(i);
+        arrayOfErrorMessages.push([i, error]);
         console.log(`Spell ID: ${i}, Failed to scrape data!`);
       }
     }
@@ -518,14 +601,16 @@ async function scrapeSpellInfo() {
   console.log(
     arrayOfScrapedData,
     arrayOfFailedSpellIDs,
-    arrayOfPotentiallySkippedIDs
+    arrayOfPotentiallySkippedIDs,
+    arrayOfErrorMessages
   );
 
   return [
     arrayOfScrapedData,
     arrayOfFailedSpellIDs,
     arrayOfPotentiallySkippedIDs,
-    driver
+    driver,
+    arrayOfErrorMessages,
   ];
 }
 

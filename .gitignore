@@ -4,3 +4,5 @@ validIDsFailedScrapeResults.json
 unsuccessfulScrapeResults.json
 successfulScrapeResults.json
 potentiallySkippedResults.json
+backupResults.json
+unsuccessfulScrapeResultsBackup.json
