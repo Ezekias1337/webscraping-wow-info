@@ -392,23 +392,29 @@ async function parseDescription(htmlToParse) {
     for (let [index, item] of spellDescriptionElementList.entries()) {
       const spellDescription = await item.getAttribute("innerHTML");
       if (
-        spellDescription.includes("<!--") ||
-        spellDescription.includes("-->") ||
-        spellDescription.includes("<span") ||
-        spellDescription.includes(">[(") ||
-        spellDescription.includes("<br") ||
-        spellDescription.includes("<") ||
-        spellDescription.includes(">")
+        (spellDescription.includes("<!--") ||
+          spellDescription.includes("-->") ||
+          spellDescription.includes("<span") ||
+          spellDescription.includes(">[(") ||
+          spellDescription.includes("<br") ||
+          spellDescription.includes("<") ||
+          spellDescription.includes(">")) &&
+        !spellDescription.includes("Item Level")
       ) {
         const spellDescriptionHTMLRemoved = await item.getAttribute(
           "innerText"
         );
         const parsedString = spellDescriptionHTMLRemoved.replace(/\n/g, " ");
         const parsedStringNoDoubleSpace = parsedString.replace(/ /g, "");
-
-        return parsedStringNoDoubleSpace;
+        //If description has a leading space, the trim removes it
+        return parsedStringNoDoubleSpace.trim();
       } else {
-        return spellDescription;
+        //Script was pulling crafted item level as description, this fixes it
+        if (!spellDescription.includes("Item Level")) {
+          return spellDescription;
+        } else {
+          return null;
+        }
       }
     }
   } catch (error) {
@@ -441,7 +447,7 @@ async function parseToolTipInOrder(i, driver) {
     objToPush.isTalent = false;
   }
 
-  //Only check for pet family requirement if ability is not a talent
+  //Only check for tertiary requirement if ability is not a talent
   if (
     (objToPush && objToPush.isTalent === undefined) ||
     objToPush.isTalent === false
@@ -566,7 +572,7 @@ async function scrapeSpellInfo() {
   let arrayOfErrorMessages = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 11500; i < 30000; i++) {
+  for (let i = 2149; i < 2154; i++) {
     let continueCodeExecution = false;
 
     //check for element with warning stating that id doesn't exist in db
