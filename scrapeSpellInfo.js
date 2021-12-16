@@ -572,7 +572,7 @@ async function scrapeSpellInfo() {
   let arrayOfErrorMessages = [];
 
   //for (let i = 0; i < 45000; i++) {
-  for (let i = 2149; i < 2154; i++) {
+  for (let i = 35000; i < 50000; i++) {
     let continueCodeExecution = false;
 
     //check for element with warning stating that id doesn't exist in db
