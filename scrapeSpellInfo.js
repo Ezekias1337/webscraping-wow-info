@@ -562,102 +562,125 @@ async function parseSpellComments(driver, commentTabToClick) {
   //Now start looping through comments
   try {
     const arrayOfComments = [];
-    //for (let i = 0; i < numberOfPagesToScrape; i++) {
-    const arrayOfCommentElements = await driver.findElements(
-      By.className("comment")
-    );
 
-    for (const item of arrayOfCommentElements) {
-      const arrayOfCommentsToPushToObj = {};
-      try {
-        //Get comment score
-        const commentScoreParent = await item.findElements(By.css("p.rating"));
-        const commentScore = await commentScoreParent[0].getAttribute(
-          "innerText"
-        );
-        arrayOfCommentsToPushToObj.commentScore = commentScore;
+    for (let i = 0; i < numberOfPagesToScrape; i++) {
+      const arrayOfCommentElements = await driver.findElements(
+        By.className("comment")
+      );
 
-        //Get comment author
-        const commentAuthorParent = await item.findElements(
-          By.css("td.comment-author")
-        );
-        const commentAuthor = await commentAuthorParent[0].getAttribute(
-          "innerText"
-        );
-        arrayOfCommentsToPushToObj.commentAuthor = commentAuthor;
+      for (const item of arrayOfCommentElements) {
+        const arrayOfCommentsToPushToObj = {};
+        try {
+          //Get comment score
+          const commentScoreParent = await item.findElements(
+            By.css("p.rating")
+          );
+          const commentScore = await commentScoreParent[0].getAttribute(
+            "innerText"
+          );
+          arrayOfCommentsToPushToObj.commentScore = commentScore;
 
-        //Get comment body
-        const commentBodyParent = await item.findElements(
-          By.css("div.comment-body")
-        );
-        const commentBody = await commentBodyParent[0].getAttribute(
-          "innerText"
-        );
-        arrayOfCommentsToPushToObj.commentBody = commentBody;
+          //Get comment author
+          const commentAuthorParent = await item.findElements(
+            By.css("td.comment-author")
+          );
+          const commentAuthor = await commentAuthorParent[0].getAttribute(
+            "innerText"
+          );
+          arrayOfCommentsToPushToObj.commentAuthor = commentAuthor;
 
-        //Iterate through replies if they exist
-        const repliesParent = await item.findElements(
-          By.css("div.comment-replies")
-        );
+          //Get comment body
+          const commentBodyParent = await item.findElements(
+            By.css("div.comment-body")
+          );
+          const commentBody = await commentBodyParent[0].getAttribute(
+            "innerText"
+          );
+          arrayOfCommentsToPushToObj.commentBody = commentBody;
 
-        if (repliesParent?.length > 0) {
-          const arrayOfReplies = [];
-          const arrayOfReplyRows = await repliesParent[0].findElements(
-            By.css("tr.comment-reply-row")
+          //Iterate through replies if they exist
+          const repliesParent = await item.findElements(
+            By.css("div.comment-replies")
           );
 
-          for (const itemNested of arrayOfReplyRows) {
-            const arrayOfRepliesToPushToObj = {};
-
-            //Get Reply score
-            const replyScoreParent = await itemNested.findElements(
-              By.css("p.reply-rating")
-            );
-            const replyScore = await replyScoreParent[0].getAttribute(
-              "innerText"
-            );
-            arrayOfRepliesToPushToObj.replyScore = replyScore;
-
-            //Get HTML wrapper of reply author & body
-            const replyAuthorAndBodyWrapper = await itemNested.findElements(
-              By.css("td.reply-text")
+          if (repliesParent?.length > 0) {
+            const arrayOfReplies = [];
+            const arrayOfReplyRows = await repliesParent[0].findElements(
+              By.css("tr.comment-reply-row")
             );
 
-            //Get reply author
-            const replyAuthorElement =
-              await replyAuthorAndBodyWrapper[0].findElements(
-                By.css("p.comment-reply-author")
+            for (const itemNested of arrayOfReplyRows) {
+              const arrayOfRepliesToPushToObj = {};
+
+              //Get Reply score
+              const replyScoreParent = await itemNested.findElements(
+                By.css("p.reply-rating")
               );
-            const replyAuthorString = await replyAuthorElement[0].getAttribute(
-              "innerText"
-            );
-            arrayOfRepliesToPushToObj.replyAuthorString = replyAuthorString;
-
-            //Get reply body
-            const replyBodyElement =
-              await replyAuthorAndBodyWrapper[0].findElements(
-                By.css("div.comment-reply-body")
+              const replyScore = await replyScoreParent[0].getAttribute(
+                "innerText"
               );
-            const replyBodyString = await replyBodyElement[0].getAttribute(
-              "innerText"
-            );
-            arrayOfRepliesToPushToObj.replyBodyString = replyBodyString;
+              arrayOfRepliesToPushToObj.replyScore = replyScore;
 
-            //Now that parsing is done, push it to array
-            arrayOfReplies.push(arrayOfRepliesToPushToObj);
+              //Get HTML wrapper of reply author & body
+              const replyAuthorAndBodyWrapper = await itemNested.findElements(
+                By.css("td.reply-text")
+              );
+
+              //Get reply author
+              const replyAuthorElement =
+                await replyAuthorAndBodyWrapper[0].findElements(
+                  By.css("p.comment-reply-author")
+                );
+              const replyAuthorString =
+                await replyAuthorElement[0].getAttribute("innerText");
+              arrayOfRepliesToPushToObj.replyAuthorString = replyAuthorString;
+
+              //Get reply body
+              const replyBodyElement =
+                await replyAuthorAndBodyWrapper[0].findElements(
+                  By.css("div.comment-reply-body")
+                );
+              const replyBodyString = await replyBodyElement[0].getAttribute(
+                "innerText"
+              );
+              arrayOfRepliesToPushToObj.replyBodyString = replyBodyString;
+
+              //Now that parsing is done, push it to array
+              arrayOfReplies.push(arrayOfRepliesToPushToObj);
+            }
+            if (arrayOfReplies?.length !== 0) {
+              arrayOfCommentsToPushToObj.replies = arrayOfReplies;
+            }
           }
-          if (arrayOfReplies?.length !== 0) {
-            arrayOfCommentsToPushToObj.replies = arrayOfReplies;
-          }
+          arrayOfComments.push(arrayOfCommentsToPushToObj);
+        } catch (error) {
+          console.log(error.message, error);
+          console.log("Failed comment scrape inside for of loop");
         }
+      }
+      console.log(`Done looping through page: ${i}`);
 
-        arrayOfComments.push(arrayOfCommentsToPushToObj);
-      } catch (error) {
-        console.log(error.message, error);
-        console.log("Failed comment scrape inside for of loop");
+      /* Now click on the next pagination element to continue scraping
+      Reason not reusing listview element from up top is because of stale
+      element reference error */
+
+      const listviewNavWrapper = await driver.findElements(
+        By.css("div.listview-nav")
+      );
+      const paginationElementList = await listviewNavWrapper[3].findElements(
+        By.xpath("//a[contains(text(), 'Next ›')]")
+      );
+
+      const nextPageElement = paginationElementList[0];
+      const nextPageElementDataActiveStatus =
+        await nextPageElement.getAttribute("data-active");
+      //This attribute determines if there are any other pages to scrape
+      if (nextPageElementDataActiveStatus === "yes") {
+        await nextPageElement.click();
+        console.log("Sleeping for 2 seconds before continuing comment scrape");
+        await driver.sleep(2000);
       }
     }
-    //}
     return arrayOfComments;
   } catch (error) {
     console.log("Failed to loop through comments");
@@ -848,7 +871,7 @@ async function scrapeSpellInfo() {
   let arrayOfErrorMessages = [];
 
   //for (let i = 0; i < 52120; i++) {
-  for (let i = 27065; i < 27066; i++) {
+  for (let i = 19434; i < 19435; i++) {
     let continueCodeExecution = false;
 
     /* check for element with warning stating that id doesn't exist in db
