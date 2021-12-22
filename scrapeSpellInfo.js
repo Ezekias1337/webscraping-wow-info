@@ -594,9 +594,63 @@ async function parseSpellComments(driver, commentTabToClick) {
           "innerText"
         );
         arrayOfCommentsToPushToObj.commentBody = commentBody;
-        
-        
-        //Move this line lower after reintegrating replies
+
+        //Iterate through replies if they exist
+        const repliesParent = await item.findElements(
+          By.css("div.comment-replies")
+        );
+
+        if (repliesParent?.length > 0) {
+          const arrayOfReplies = [];
+          const arrayOfReplyRows = await repliesParent[0].findElements(
+            By.css("tr.comment-reply-row")
+          );
+
+          for (const itemNested of arrayOfReplyRows) {
+            const arrayOfRepliesToPushToObj = {};
+
+            //Get Reply score
+            const replyScoreParent = await itemNested.findElements(
+              By.css("p.reply-rating")
+            );
+            const replyScore = await replyScoreParent[0].getAttribute(
+              "innerText"
+            );
+            arrayOfRepliesToPushToObj.replyScore = replyScore;
+
+            //Get HTML wrapper of reply author & body
+            const replyAuthorAndBodyWrapper = await itemNested.findElements(
+              By.css("td.reply-text")
+            );
+
+            //Get reply author
+            const replyAuthorElement =
+              await replyAuthorAndBodyWrapper[0].findElements(
+                By.css("p.comment-reply-author")
+              );
+            const replyAuthorString = await replyAuthorElement[0].getAttribute(
+              "innerText"
+            );
+            arrayOfRepliesToPushToObj.replyAuthorString = replyAuthorString;
+
+            //Get reply body
+            const replyBodyElement =
+              await replyAuthorAndBodyWrapper[0].findElements(
+                By.css("div.comment-reply-body")
+              );
+            const replyBodyString = await replyBodyElement[0].getAttribute(
+              "innerText"
+            );
+            arrayOfRepliesToPushToObj.replyBodyString = replyBodyString;
+
+            //Now that parsing is done, push it to array
+            arrayOfReplies.push(arrayOfRepliesToPushToObj);
+          }
+          if (arrayOfReplies?.length !== 0) {
+            arrayOfCommentsToPushToObj.replies = arrayOfReplies;
+          }
+        }
+
         arrayOfComments.push(arrayOfCommentsToPushToObj);
       } catch (error) {
         console.log(error.message, error);
