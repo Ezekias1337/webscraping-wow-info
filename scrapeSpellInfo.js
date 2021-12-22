@@ -139,6 +139,21 @@ async function parseSpellCost(htmlToParse) {
               return itemNestedLoop;
             }
           }
+        } else if (itemToPushToObj.includes("\n")) {
+          for (const itemNestedLoop of itemToPushToObj.split("\n")) {
+            if (
+              itemNestedLoop.includes("Energy") ||
+              itemNestedLoop.includes("energy") ||
+              itemNestedLoop.includes("Rage") ||
+              itemNestedLoop.includes("rage") ||
+              itemNestedLoop.includes("Focus") ||
+              itemNestedLoop.includes("focus") ||
+              itemNestedLoop.includes("Mana") ||
+              itemNestedLoop.includes("mana")
+            ) {
+              return itemNestedLoop;
+            }
+          }
         } else if (itemToPushToObj.length === 1) {
           return itemToPushToObj;
         }
@@ -485,13 +500,9 @@ async function parseSpellIcon(htmlToParse) {
 async function parseSpellScreenShot(htmlToParse) {
   try {
     const imageElement = await htmlToParse.findElements(By.css("img"));
-
-    console.log(imageElement[0]);
-
     const imageElementBackgroundString = await imageElement[0].getAttribute(
       "src"
     );
-    console.log(imageElementBackgroundString);
 
     return imageElementBackgroundString;
   } catch (error) {
@@ -500,11 +511,112 @@ async function parseSpellScreenShot(htmlToParse) {
   }
 }
 
+async function parseSpellComments(driver, commentTabToClick) {
+  //First click comment tab
+  try {
+    await commentTabToClick.click();
+  } catch (error) {
+    console.log("Failed to click comments tab");
+    return null;
+  }
+
+  /* Second check for element which indicates there are no comments
+  if this element is found, exit function */
+  try {
+    await driver.findElement(
+      By.xpath("//div[contains(text(), 'No comments have been posted yet.')]")
+    );
+    console.log("Confirmed to have no comments");
+  } catch (error) {
+    console.log("No comments element not found, now parsing comments");
+  }
+
+  //Now determine number of pages of comments
+  let numberOfPagesToScrape;
+  try {
+    const qtyOfCommentsElementList = await driver.findElements(
+      By.className("listview-nav")
+    );
+    const qtyOfCommentsElement = qtyOfCommentsElementList[3];
+    const commentParent = await qtyOfCommentsElement.findElements(
+      By.css("span")
+    );
+    const commentQTYUnparsed = await commentParent[0].getAttribute("innerText");
+    const commentQTYSplit = commentQTYUnparsed.split(" ");
+
+    const rangeOfFirstPage = parseInt(commentQTYSplit[2]);
+    const rangeOfAllComments = parseInt(commentQTYSplit[4]);
+
+    if (rangeOfAllComments <= 40) {
+      numberOfPagesToScrape = 1;
+    } else {
+      numberOfPagesToScrape = Math.ceil(rangeOfAllComments / 40);
+    }
+
+    console.log(`${numberOfPagesToScrape} pages of comments to scrape`);
+  } catch (error) {
+    console.log("Failed to determine number of comments");
+    console.log(error.message, error);
+  }
+
+  //Now start looping through comments
+  try {
+    const arrayOfComments = [];
+    //for (let i = 0; i < numberOfPagesToScrape; i++) {
+    const arrayOfCommentElements = await driver.findElements(
+      By.className("comment")
+    );
+
+    for (const item of arrayOfCommentElements) {
+      const arrayOfCommentsToPushToObj = {};
+      try {
+        //Get comment score
+        const commentScoreParent = await item.findElements(By.css("p.rating"));
+        const commentScore = await commentScoreParent[0].getAttribute(
+          "innerText"
+        );
+        arrayOfCommentsToPushToObj.commentScore = commentScore;
+
+        //Get comment author
+        const commentAuthorParent = await item.findElements(
+          By.css("td.comment-author")
+        );
+        const commentAuthor = await commentAuthorParent[0].getAttribute(
+          "innerText"
+        );
+        arrayOfCommentsToPushToObj.commentAuthor = commentAuthor;
+
+        //Get comment body
+        const commentBodyParent = await item.findElements(
+          By.css("div.comment-body")
+        );
+        const commentBody = await commentBodyParent[0].getAttribute(
+          "innerText"
+        );
+        arrayOfCommentsToPushToObj.commentBody = commentBody;
+        
+        
+        //Move this line lower after reintegrating replies
+        arrayOfComments.push(arrayOfCommentsToPushToObj);
+      } catch (error) {
+        console.log(error.message, error);
+        console.log("Failed comment scrape inside for of loop");
+      }
+    }
+    //}
+    return arrayOfComments;
+  } catch (error) {
+    console.log("Failed to loop through comments");
+    console.log(error.message, error);
+    return null;
+  }
+}
+
 async function parseToolTipInOrder(i, driver) {
   let objToPush = {};
   objToPush.ID = i;
 
-  //This is the html for all the data except images
+  //This is the html for all the data except images/comments
   const toolTipTableParent = await driver.findElements(
     By.className("wowhead-tooltip")
   );
@@ -516,6 +628,12 @@ async function parseToolTipInOrder(i, driver) {
 
   //This is the html for the spell screenshot
   const screenShotParent = await driver.findElement(By.id("infobox-sticky-ss"));
+
+  //This is the html for the spell comments
+  const commentTabToClickFullArray = await driver.findElements(
+    By.className("ugc-tab-comments")
+  );
+  const commentTabToClick = commentTabToClickFullArray[0];
 
   objToPush.spellName = await parseSpellName(toolTipTable);
   if (objToPush.spellName === undefined || objToPush.spellName === null) {
@@ -629,6 +747,11 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.screenShotURL;
   }
 
+  objToPush.comments = await parseSpellComments(driver, commentTabToClick);
+  if (objToPush.comments === undefined || objToPush.comments === null) {
+    delete objToPush.comments;
+  }
+
   console.log(
     "----------------------------------------------------------------------"
   );
@@ -670,8 +793,8 @@ async function scrapeSpellInfo() {
   let arrayOfPotentiallySkippedIDs = [];
   let arrayOfErrorMessages = [];
 
-  //for (let i = 46748; i < 52120; i++) {
-  for (let i = 27019; i < 27020; i++) {
+  //for (let i = 0; i < 52120; i++) {
+  for (let i = 27065; i < 27066; i++) {
     let continueCodeExecution = false;
 
     /* check for element with warning stating that id doesn't exist in db
@@ -704,12 +827,12 @@ async function scrapeSpellInfo() {
     }
   }
 
-  console.log(
+  /* console.log(
     arrayOfScrapedData,
     arrayOfFailedSpellIDs,
     arrayOfPotentiallySkippedIDs,
     arrayOfErrorMessages
-  );
+  ); */
 
   return [
     arrayOfScrapedData,
