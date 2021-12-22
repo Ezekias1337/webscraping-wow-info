@@ -251,7 +251,42 @@ async function parseRange(htmlToParse) {
       }
     }
   } catch (error) {
-    console.log("No range for this spell");
+    console.log("Possibly no range for this spell, trying td element next");
+    return null;
+  }
+  //Some tooltips ranges are in a td instead of th, this will find it
+  try {
+    const tdElementList = await htmlToParse.findElements(By.css("td"));
+
+    for (let [index, item] of tdElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerText");
+
+      if (
+        itemToPushToObj.includes("Melee Range") ||
+        itemToPushToObj.includes("yd range") ||
+        itemToPushToObj.includes("Unlimited range")
+      ) {
+        if (itemToPushToObj.includes("\n")) {
+          const itemToPushToObjSplit = itemToPushToObj.split("\n");
+
+          for (const itemNested of itemToPushToObjSplit) {
+            if (
+              itemNested.includes("Melee Range") ||
+              itemNested.includes("yd range") ||
+              itemNested.includes("Unlimited range")
+            ) {
+              const spellRange = itemNested;
+              return spellRange;
+            }
+          }
+        }
+
+        const spellRange = itemToPushToObj;
+        return spellRange;
+      }
+    }
+  } catch (error) {
+    console.log("No spell range for this spell");
     return null;
   }
 }
@@ -423,14 +458,51 @@ async function parseDescription(htmlToParse) {
   }
 }
 
+async function parseSpellIcon(htmlToParse) {
+  /* const strToTrim =
+    'background-image: url("https://wow.zamimg.com/images/wow/icons/large/ability_impalingbolt.jpg");';
+  const strTrimmed = strToTrim
+    .replace("background-image: url(", "")
+    .replace(");", ""); */
+
+  try {
+    const imageElement = await htmlToParse.findElements(
+      By.className("iconlarge")
+    );
+    //const imageElementParsed = await imageElement.getCssValue('backgroundImage');
+    const imageElementBackground = await imageElement[0].findElements(
+      By.css("ins")
+    );
+    const imageElementBackgroundString = await imageElementBackground[0].getCssValue("backgroundImage")
+    console.log(imageElementBackgroundString)
+
+
+    //return imageElementListParsed;
+  } catch (error) {
+    console.log(error, error.message);
+    console.log("No spell icon for this spell");
+    return null;
+  }
+}
+
 async function parseToolTipInOrder(i, driver) {
   let objToPush = {};
   objToPush.ID = i;
 
+  //This is the html for all the data except images
   const toolTipTableParent = await driver.findElements(
     By.className("wowhead-tooltip")
   );
   const toolTipTable = toolTipTableParent[0];
+
+  //This is the html for the spell icon
+  const toolTipIconParent = await driver.findElements(
+    //By.className("wowhead-tooltip")
+    By.id(`ic${i}`)
+  );
+  const toolTipIcon = toolTipIconParent[0];
+
+  //This is the html for the spell screenshot
 
   objToPush.spellName = await parseSpellName(toolTipTable);
   if (objToPush.spellName === undefined || objToPush.spellName === null) {
@@ -530,6 +602,12 @@ async function parseToolTipInOrder(i, driver) {
   if (objToPush.description === undefined || objToPush.description === null) {
     delete objToPush.description;
   }
+
+  objToPush.spellIconURL = await parseSpellIcon(toolTipIcon);
+  if (objToPush.spellIconURL === undefined || objToPush.spellIconURL === null) {
+    delete objToPush.spellIconURL;
+  }
+
   console.log(
     "----------------------------------------------------------------------"
   );
@@ -546,7 +624,7 @@ async function scrapeThenWriteToJSON() {
   let dataFailed = JSON.stringify(resultOfScrape[1]);
   let dataPotentiallySkipped = JSON.stringify(resultOfScrape[2]);
   let driver = resultOfScrape[3];
-  let errorMessageArray = resultOfScrape[4];
+  let errorMessageArray = JSON.stringify(resultOfScrape[4]);
 
   if (dataComplete.length > 0) {
     fs.writeFileSync("successfulScrapeResults.json", dataComplete);
@@ -557,7 +635,7 @@ async function scrapeThenWriteToJSON() {
   if (dataPotentiallySkipped.length > 0) {
     fs.writeFileSync("potentiallySkippedResults.json", dataPotentiallySkipped);
   }
-  if (errorMessageArray.length > 0) {
+  if (errorMessageArray !== "[]") {
     fs.writeFileSync("errorMessageLogs.json", errorMessageArray);
   }
 
@@ -571,12 +649,12 @@ async function scrapeSpellInfo() {
   let arrayOfPotentiallySkippedIDs = [];
   let arrayOfErrorMessages = [];
 
-  //for (let i = 0; i < 45000; i++) {
-  for (let i = 35000; i < 50000; i++) {
+  //for (let i = 46748; i < 52120; i++) {
+  for (let i = 12294; i < 12300; i++) {
     let continueCodeExecution = false;
 
-    //check for element with warning stating that id doesn't exist in db
-    //if try statement is successful, element doesn't exist in db
+    /* check for element with warning stating that id doesn't exist in db
+    if try statement is successful, element doesn't exist in db */
     try {
       await driver.get(`https://tbc.wowhead.com/spell=${i}`);
       const notFoundElement = await driver.findElement(
@@ -591,14 +669,15 @@ async function scrapeSpellInfo() {
       continueCodeExecution = true;
     }
 
-    //this only executes if the notFoundElement was failed to be found in DOM
+    /* this only executes if the notFoundElement was failed to be found in DOM,
+    meaning id exists */
     if (continueCodeExecution === true) {
       try {
         const dataToPushToArray = await parseToolTipInOrder(i, driver);
         arrayOfScrapedData.push(dataToPushToArray);
       } catch (error) {
         arrayOfPotentiallySkippedIDs.push(i);
-        arrayOfErrorMessages.push([i, error]);
+        arrayOfErrorMessages.push([i, error.message]);
         console.log(`Spell ID: ${i}, Failed to scrape data!`);
       }
     }

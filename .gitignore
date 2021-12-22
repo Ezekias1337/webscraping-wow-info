@@ -6,3 +6,4 @@ successfulScrapeResults.json
 potentiallySkippedResults.json
 backupResults.json
 unsuccessfulScrapeResultsBackup.json
+errorMessageLogs.json
