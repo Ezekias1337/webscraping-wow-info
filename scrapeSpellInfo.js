@@ -459,28 +459,43 @@ async function parseDescription(htmlToParse) {
 }
 
 async function parseSpellIcon(htmlToParse) {
-  /* const strToTrim =
-    'background-image: url("https://wow.zamimg.com/images/wow/icons/large/ability_impalingbolt.jpg");';
-  const strTrimmed = strToTrim
-    .replace("background-image: url(", "")
-    .replace(");", ""); */
-
   try {
     const imageElement = await htmlToParse.findElements(
       By.className("iconlarge")
     );
-    //const imageElementParsed = await imageElement.getCssValue('backgroundImage');
+
     const imageElementBackground = await imageElement[0].findElements(
       By.css("ins")
     );
-    const imageElementBackgroundString = await imageElementBackground[0].getCssValue("backgroundImage")
-    console.log(imageElementBackgroundString)
 
+    const imageElementBackgroundString =
+      await imageElementBackground[0].getCssValue("backgroundImage");
 
-    //return imageElementListParsed;
+    const backgroundStringTrimmed = imageElementBackgroundString
+      .replace('url("', "")
+      .replace('")', "");
+
+    return backgroundStringTrimmed;
   } catch (error) {
-    console.log(error, error.message);
     console.log("No spell icon for this spell");
+    return null;
+  }
+}
+
+async function parseSpellScreenShot(htmlToParse) {
+  try {
+    const imageElement = await htmlToParse.findElements(By.css("img"));
+
+    console.log(imageElement[0]);
+
+    const imageElementBackgroundString = await imageElement[0].getAttribute(
+      "src"
+    );
+    console.log(imageElementBackgroundString);
+
+    return imageElementBackgroundString;
+  } catch (error) {
+    console.log("No screenshot for this spell");
     return null;
   }
 }
@@ -496,13 +511,11 @@ async function parseToolTipInOrder(i, driver) {
   const toolTipTable = toolTipTableParent[0];
 
   //This is the html for the spell icon
-  const toolTipIconParent = await driver.findElements(
-    //By.className("wowhead-tooltip")
-    By.id(`ic${i}`)
-  );
+  const toolTipIconParent = await driver.findElements(By.id(`ic${i}`));
   const toolTipIcon = toolTipIconParent[0];
 
   //This is the html for the spell screenshot
+  const screenShotParent = await driver.findElement(By.id("infobox-sticky-ss"));
 
   objToPush.spellName = await parseSpellName(toolTipTable);
   if (objToPush.spellName === undefined || objToPush.spellName === null) {
@@ -608,6 +621,14 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.spellIconURL;
   }
 
+  objToPush.screenShotURL = await parseSpellScreenShot(screenShotParent);
+  if (
+    objToPush.screenShotURL === undefined ||
+    objToPush.screenShotURL === null
+  ) {
+    delete objToPush.screenShotURL;
+  }
+
   console.log(
     "----------------------------------------------------------------------"
   );
@@ -650,7 +671,7 @@ async function scrapeSpellInfo() {
   let arrayOfErrorMessages = [];
 
   //for (let i = 46748; i < 52120; i++) {
-  for (let i = 12294; i < 12300; i++) {
+  for (let i = 27019; i < 27020; i++) {
     let continueCodeExecution = false;
 
     /* check for element with warning stating that id doesn't exist in db
