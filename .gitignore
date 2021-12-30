@@ -7,3 +7,6 @@ potentiallySkippedResults.json
 backupResults.json
 errorMessageLogs.json
 backupFailedIDs.json
+backupSkippedIDs.json
+quests/list-of-reqs.txt
+npcs/list-of-reqs.txt

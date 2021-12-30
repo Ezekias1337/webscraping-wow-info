@@ -2,7 +2,7 @@ const { Builder, By, Key, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
 const fs = require("fs");
 
-async function parseSpellName(htmlToParse) {
+async function parseSpellName(htmlToParse, arrayOfErrorMessages) {
   try {
     const whttNameElementList = await htmlToParse.findElements(
       By.className("whtt-name")
@@ -17,11 +17,12 @@ async function parseSpellName(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     return null;
   }
 }
 
-async function parseRank(htmlToParse) {
+async function parseRank(htmlToParse, arrayOfErrorMessages) {
   try {
     const q0ElementList = await htmlToParse.findElements(By.className("q0"));
 
@@ -34,12 +35,13 @@ async function parseRank(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No rank for this spell");
     return null;
   }
 }
 
-async function parseTalent(htmlToParse) {
+async function parseTalent(htmlToParse, arrayOfErrorMessages) {
   try {
     const q0ElementList = await htmlToParse.findElements(By.className("q0"));
 
@@ -51,13 +53,14 @@ async function parseTalent(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No talent for this spell");
     return false;
   }
 }
 
 //This one gets called for a small amount of spells like 4741 which is a hunter pet spell
-async function parseTertiaryRequirement(htmlToParse) {
+async function parseTertiaryRequirement(htmlToParse, arrayOfErrorMessages) {
   try {
     const q0ElementList = await htmlToParse.findElements(By.css("b.q0"));
 
@@ -88,12 +91,13 @@ async function parseTertiaryRequirement(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No talent for this spell");
     return false;
   }
 }
 
-async function parseSpellCost(htmlToParse) {
+async function parseSpellCost(htmlToParse, arrayOfErrorMessages) {
   try {
     const tdElementList = await htmlToParse.findElements(By.css("td"));
     for (let [index, item] of tdElementList.entries()) {
@@ -160,12 +164,13 @@ async function parseSpellCost(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No cost for this spell");
     return null;
   }
 }
 
-async function parseCastTime(htmlToParse) {
+async function parseCastTime(htmlToParse, arrayOfErrorMessages) {
   try {
     const tdElementList = await htmlToParse.findElements(By.css("td"));
     for (let [index, item] of tdElementList.entries()) {
@@ -228,28 +233,33 @@ async function parseCastTime(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No cast time for this spell");
     return null;
   }
 }
 
-async function parseReagents(htmlToParse) {
+async function parseToolsAndReagants(htmlToParse, arrayOfErrorMessages) {
   try {
-    const q1ElementList = await htmlToParse.findElements(By.css("div.q1"));
+    const q1ElementList = await htmlToParse.findElements(
+      By.css("div.indent.q1")
+    );
+    const toolAndReagantArray = [];
 
     for (let [index, item] of q1ElementList.entries()) {
       const itemToPushToObj = await item.getAttribute("innerText");
-      const reagentsRequirement = itemToPushToObj;
-
-      return reagentsRequirement;
+      const toolsOrReagantRequirement = itemToPushToObj;
+      toolAndReagantArray.push(toolsOrReagantRequirement);
     }
+    return toolAndReagantArray;
   } catch (error) {
-    console.log("No talent for this spell");
+    arrayOfErrorMessages.push(error.message);
+    console.log("No tool or reagant requirement for this spell");
     return false;
   }
 }
 
-async function parseRange(htmlToParse) {
+async function parseRange(htmlToParse, arrayOfErrorMessages) {
   try {
     const thElementList = await htmlToParse.findElements(By.css("th"));
 
@@ -266,6 +276,7 @@ async function parseRange(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("Possibly no range for this spell, trying td element next");
     return null;
   }
@@ -301,12 +312,13 @@ async function parseRange(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No spell range for this spell");
     return null;
   }
 }
 
-async function parseCD(htmlToParse) {
+async function parseCD(htmlToParse, arrayOfErrorMessages) {
   try {
     const thElementList = await htmlToParse.findElements(By.css("th"));
 
@@ -319,12 +331,13 @@ async function parseCD(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No CD for this spell");
     return null;
   }
 }
 
-async function parseClassRequirement(driver) {
+async function parseClassRequirement(driver, arrayOfErrorMessages) {
   try {
     const infoBoxContents = await driver.findElements(
       By.className("infobox-inner-table")
@@ -342,7 +355,9 @@ async function parseClassRequirement(driver) {
     );
     const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ");
     return parsedStringNoDoubleSpace;
-  } catch (error) {}
+  } catch (error) {
+    arrayOfErrorMessages.push(error.message);
+  }
 
   //If spell has only one class requirement, need to search by alternate xpath
   try {
@@ -362,11 +377,13 @@ async function parseClassRequirement(driver) {
     );
     const parsedStringNoDoubleSpace = parsedString.replace(/  /g, " ");
     return parsedStringNoDoubleSpace;
-  } catch (error) {}
+  } catch (error) {
+    arrayOfErrorMessages.push(error.message);
+  }
   return null;
 }
 
-async function parseLevelRequirement(htmlToParse) {
+async function parseLevelRequirement(htmlToParse, arrayOfErrorMessages) {
   try {
     const thElementList = await htmlToParse.findElements(
       By.className("wowhead-tooltip-requirements")
@@ -381,12 +398,13 @@ async function parseLevelRequirement(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No level requirement for this spell");
     return null;
   }
 }
 
-async function parseStanceOrFormRequirement(htmlToParse) {
+async function parseStanceOrFormRequirement(htmlToParse, arrayOfErrorMessages) {
   try {
     const thElementList = await htmlToParse.findElements(
       By.className("wowhead-tooltip-requirements")
@@ -404,12 +422,13 @@ async function parseStanceOrFormRequirement(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No level requirement for this spell");
     return null;
   }
 }
 
-async function parseWeaponRequirement(htmlToParse) {
+async function parseWeaponRequirement(htmlToParse, arrayOfErrorMessages) {
   try {
     const thElementList = await htmlToParse.findElements(
       By.className("wowhead-tooltip-requirements")
@@ -428,12 +447,44 @@ async function parseWeaponRequirement(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No weapon requirement for this spell");
     return null;
   }
 }
 
-async function parseDescription(htmlToParse) {
+async function parseItemSlotRequirement(htmlToParse, arrayOfErrorMessages) {
+  try {
+    const spanElementList = await htmlToParse.findElements(
+      By.className("wowhead-tooltip-requirements")
+    );
+
+    for (let [index, item] of spanElementList.entries()) {
+      const itemToPushToObj = await item.getAttribute("innerText");
+
+      if (
+        itemToPushToObj.includes("Requires Helms") ||
+        itemToPushToObj.includes("Requires Shoulders") ||
+        itemToPushToObj.includes("Requires Chest") ||
+        itemToPushToObj.includes("Requires Bracers") ||
+        itemToPushToObj.includes("Requires Gloves") ||
+        itemToPushToObj.includes("Requires Pants") ||
+        itemToPushToObj.includes("Requires Boots") ||
+        itemToPushToObj.includes("Requires Cloak") ||
+        itemToPushToObj.includes("Requires Armor")
+      ) {
+        const spellSlotRequirement = itemToPushToObj;
+        return spellSlotRequirement;
+      }
+    }
+  } catch (error) {
+    arrayOfErrorMessages.push(error.message);
+    console.log("No item slot requirement for this spell");
+    return null;
+  }
+}
+
+async function parseDescription(htmlToParse, arrayOfErrorMessages) {
   try {
     const spellDescriptionElementList = await htmlToParse.findElements(
       By.className("q")
@@ -468,12 +519,13 @@ async function parseDescription(htmlToParse) {
       }
     }
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No description for this spell");
     return null;
   }
 }
 
-async function parseSpellIcon(htmlToParse) {
+async function parseSpellIcon(htmlToParse, arrayOfErrorMessages) {
   try {
     const imageElement = await htmlToParse.findElements(
       By.className("iconlarge")
@@ -492,12 +544,13 @@ async function parseSpellIcon(htmlToParse) {
 
     return backgroundStringTrimmed;
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No spell icon for this spell");
     return null;
   }
 }
 
-async function parseSpellScreenShot(htmlToParse) {
+async function parseSpellScreenShot(htmlToParse, arrayOfErrorMessages) {
   try {
     const imageElement = await htmlToParse.findElements(By.css("img"));
     const imageElementBackgroundString = await imageElement[0].getAttribute(
@@ -506,16 +559,22 @@ async function parseSpellScreenShot(htmlToParse) {
 
     return imageElementBackgroundString;
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("No screenshot for this spell");
     return null;
   }
 }
 
-async function parseSpellComments(driver, commentTabToClick) {
+async function parseSpellComments(
+  driver,
+  commentTabToClick,
+  arrayOfErrorMessages
+) {
   //First click comment tab
   try {
     await commentTabToClick.click();
   } catch (error) {
+    arrayOfErrorMessages.push(error.message);
     console.log("Failed to click comments tab");
     return null;
   }
@@ -524,7 +583,7 @@ async function parseSpellComments(driver, commentTabToClick) {
   if this element is found, exit function */
   try {
     await driver.findElement(
-      By.xpath("//div[contains(text(), 'No comments have been posted yet.')]")
+      By.xpath("//b[contains(text(), 'No comments have been posted yet.')]")
     );
     console.log("Confirmed to have no comments");
   } catch (error) {
@@ -538,24 +597,29 @@ async function parseSpellComments(driver, commentTabToClick) {
       By.className("listview-nav")
     );
     const qtyOfCommentsElement = qtyOfCommentsElementList[3];
-    const commentParent = await qtyOfCommentsElement.findElements(
-      By.css("span")
-    );
-    const commentQTYUnparsed = await commentParent[0].getAttribute("innerText");
-    const commentQTYSplit = commentQTYUnparsed.split(" ");
 
-    const rangeOfFirstPage = parseInt(commentQTYSplit[2]);
-    const rangeOfAllComments = parseInt(commentQTYSplit[4]);
-
-    if (rangeOfAllComments <= 40) {
+    if (qtyOfCommentsElement === undefined) {
       numberOfPagesToScrape = 1;
     } else {
-      numberOfPagesToScrape = Math.ceil(rangeOfAllComments / 40);
-    }
+      const commentParent = await qtyOfCommentsElement.findElements(
+        By.css("span")
+      );
 
-    console.log(`${numberOfPagesToScrape} pages of comments to scrape`);
+      const commentQTYUnparsed = await commentParent[0].getAttribute(
+        "innerText"
+      );
+      const commentQTYSplit = commentQTYUnparsed.split(" ");
+      const rangeOfAllComments = parseInt(commentQTYSplit[4]);
+
+      if (rangeOfAllComments <= 40) {
+        numberOfPagesToScrape = 1;
+      } else {
+        numberOfPagesToScrape = Math.ceil(rangeOfAllComments / 40);
+      }
+    }
   } catch (error) {
-    console.log("Failed to determine number of comments");
+    arrayOfErrorMessages.push(error.message);
+    console.log("Failed to determine number of pages of comments");
     console.log(error.message, error);
   }
 
@@ -667,29 +731,34 @@ async function parseSpellComments(driver, commentTabToClick) {
       const listviewNavWrapper = await driver.findElements(
         By.css("div.listview-nav")
       );
-      const paginationElementList = await listviewNavWrapper[3].findElements(
-        By.xpath("//a[contains(text(), 'Next ›')]")
-      );
 
-      const nextPageElement = paginationElementList[0];
-      const nextPageElementDataActiveStatus =
-        await nextPageElement.getAttribute("data-active");
-      //This attribute determines if there are any other pages to scrape
-      if (nextPageElementDataActiveStatus === "yes") {
-        await nextPageElement.click();
-        console.log("Sleeping for 2 seconds before continuing comment scrape");
-        await driver.sleep(2000);
+      if (listviewNavWrapper[3] !== undefined) {
+        const paginationElementList = await listviewNavWrapper[3].findElements(
+          By.xpath("//a[contains(text(), 'Next ›')]")
+        );
+
+        const nextPageElement = paginationElementList[0];
+        const nextPageElementDataActiveStatus =
+          await nextPageElement.getAttribute("data-active");
+        //This attribute determines if there are any other pages to scrape
+        if (nextPageElementDataActiveStatus === "yes") {
+          await nextPageElement.click();
+          await driver.sleep(2000);
+        }
       }
     }
     return arrayOfComments;
   } catch (error) {
-    console.log("Failed to loop through comments");
-    console.log(error.message, error);
+    arrayOfErrorMessages.push(error.message);
+    console.log(
+      "Failed to loop through comments, the only comment needs moderator attention"
+    );
+    console.log(error);
     return null;
   }
 }
 
-async function parseToolTipInOrder(i, driver) {
+async function parseToolTipInOrder(i, driver, arrayOfErrorMessages) {
   let objToPush = {};
   objToPush.ID = i;
 
@@ -712,17 +781,20 @@ async function parseToolTipInOrder(i, driver) {
   );
   const commentTabToClick = commentTabToClickFullArray[0];
 
-  objToPush.spellName = await parseSpellName(toolTipTable);
+  objToPush.spellName = await parseSpellName(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
   if (objToPush.spellName === undefined || objToPush.spellName === null) {
     delete objToPush.spellName;
   }
 
-  objToPush.spellRank = await parseRank(toolTipTable);
+  objToPush.spellRank = await parseRank(toolTipTable, arrayOfErrorMessages);
   if (objToPush.spellRank === undefined || objToPush.spellRank === null) {
     delete objToPush.spellRank;
   }
 
-  objToPush.isTalent = await parseTalent(toolTipTable);
+  objToPush.isTalent = await parseTalent(toolTipTable, arrayOfErrorMessages);
   if (objToPush.isTalent === undefined || objToPush.isTalent === null) {
     objToPush.isTalent = false;
   }
@@ -733,7 +805,8 @@ async function parseToolTipInOrder(i, driver) {
     objToPush.isTalent === false
   ) {
     objToPush.tertiaryRequirement = await parseTertiaryRequirement(
-      toolTipTable
+      toolTipTable,
+      arrayOfErrorMessages
     );
     if (
       objToPush.tertiaryRequirement === undefined ||
@@ -744,12 +817,18 @@ async function parseToolTipInOrder(i, driver) {
     }
   }
 
-  objToPush.spellCost = await parseSpellCost(toolTipTable);
+  objToPush.spellCost = await parseSpellCost(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
   if (objToPush.spellCost === undefined || objToPush.spellCost === null) {
     delete objToPush.spellCost;
   }
 
-  objToPush.spellCastTime = await parseCastTime(toolTipTable);
+  objToPush.spellCastTime = await parseCastTime(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
   if (
     objToPush.spellCastTime === undefined ||
     objToPush.spellCastTime === null
@@ -757,22 +836,35 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.spellCastTime;
   }
 
-  objToPush.reagents = await parseReagents(toolTipTable);
+  const toolsAndReagantArray = await parseToolsAndReagants(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
+
+  objToPush.tools = toolsAndReagantArray[0];
+  if (objToPush.tools === undefined || objToPush.tools === null) {
+    delete objToPush.tools;
+  }
+
+  objToPush.reagents = toolsAndReagantArray[1];
   if (objToPush.reagents === undefined || objToPush.reagents === null) {
     delete objToPush.reagents;
   }
 
-  objToPush.spellRange = await parseRange(toolTipTable);
+  objToPush.spellRange = await parseRange(toolTipTable, arrayOfErrorMessages);
   if (objToPush.spellRange === undefined || objToPush.spellRange === null) {
     delete objToPush.spellRange;
   }
 
-  objToPush.spellCD = await parseCD(toolTipTable);
+  objToPush.spellCD = await parseCD(toolTipTable, arrayOfErrorMessages);
   if (objToPush.spellCD === undefined || objToPush.spellCD === null) {
     delete objToPush.spellCD;
   }
 
-  objToPush.classRequirement = await parseClassRequirement(driver);
+  objToPush.classRequirement = await parseClassRequirement(
+    driver,
+    arrayOfErrorMessages
+  );
   if (
     objToPush.classRequirement === undefined ||
     objToPush.classRequirement === null
@@ -780,7 +872,10 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.classRequirement;
   }
 
-  objToPush.levelRequirement = await parseLevelRequirement(toolTipTable);
+  objToPush.levelRequirement = await parseLevelRequirement(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
   if (
     objToPush.levelRequirement === undefined ||
     objToPush.levelRequirement === null
@@ -789,7 +884,8 @@ async function parseToolTipInOrder(i, driver) {
   }
 
   objToPush.stanceOrFormRequirement = await parseStanceOrFormRequirement(
-    toolTipTable
+    toolTipTable,
+    arrayOfErrorMessages
   );
   if (
     objToPush.stanceOrFormRequirement === undefined ||
@@ -798,7 +894,10 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.stanceOrFormRequirement;
   }
 
-  objToPush.weaponRequirement = await parseWeaponRequirement(toolTipTable);
+  objToPush.weaponRequirement = await parseWeaponRequirement(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
   if (
     objToPush.weaponRequirement === undefined ||
     objToPush.weaponRequirement === null
@@ -806,17 +905,37 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.weaponRequirement;
   }
 
-  objToPush.description = await parseDescription(toolTipTable);
+  objToPush.itemSlotRequirement = await parseItemSlotRequirement(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
+  if (
+    objToPush.itemSlotRequirement === undefined ||
+    objToPush.itemSlotRequirement === null
+  ) {
+    delete objToPush.itemSlotRequirement;
+  }
+
+  objToPush.description = await parseDescription(
+    toolTipTable,
+    arrayOfErrorMessages
+  );
   if (objToPush.description === undefined || objToPush.description === null) {
     delete objToPush.description;
   }
 
-  objToPush.spellIconURL = await parseSpellIcon(toolTipIcon);
+  objToPush.spellIconURL = await parseSpellIcon(
+    toolTipIcon,
+    arrayOfErrorMessages
+  );
   if (objToPush.spellIconURL === undefined || objToPush.spellIconURL === null) {
     delete objToPush.spellIconURL;
   }
 
-  objToPush.screenShotURL = await parseSpellScreenShot(screenShotParent);
+  objToPush.screenShotURL = await parseSpellScreenShot(
+    screenShotParent,
+    arrayOfErrorMessages
+  );
   if (
     objToPush.screenShotURL === undefined ||
     objToPush.screenShotURL === null
@@ -824,8 +943,16 @@ async function parseToolTipInOrder(i, driver) {
     delete objToPush.screenShotURL;
   }
 
-  objToPush.comments = await parseSpellComments(driver, commentTabToClick);
-  if (objToPush.comments === undefined || objToPush.comments === null) {
+  objToPush.comments = await parseSpellComments(
+    driver,
+    commentTabToClick,
+    arrayOfErrorMessages
+  );
+  if (
+    objToPush.comments === undefined ||
+    objToPush.comments === null ||
+    objToPush.comments.length === 0
+  ) {
     delete objToPush.comments;
   }
 
@@ -848,16 +975,19 @@ async function scrapeThenWriteToJSON() {
   let errorMessageArray = JSON.stringify(resultOfScrape[4]);
 
   if (dataComplete.length > 0) {
-    fs.writeFileSync("successfulScrapeResults.json", dataComplete);
+    fs.writeFileSync("./spells/successfulScrapeResults.json", dataComplete);
   }
   if (dataFailed.length > 0) {
-    fs.writeFileSync("unsuccessfulScrapeResults.json", dataFailed);
+    fs.writeFileSync("./spells/unsuccessfulScrapeResults.json", dataFailed);
   }
   if (dataPotentiallySkipped.length > 0) {
-    fs.writeFileSync("potentiallySkippedResults.json", dataPotentiallySkipped);
+    fs.writeFileSync(
+      "./spells/potentiallySkippedResults.json",
+      dataPotentiallySkipped
+    );
   }
   if (errorMessageArray !== "[]") {
-    fs.writeFileSync("errorMessageLogs.json", errorMessageArray);
+    fs.writeFileSync("./spells/errorMessageLogs.json", errorMessageArray);
   }
 
   await driver.close();
@@ -871,8 +1001,13 @@ async function scrapeSpellInfo() {
   let arrayOfErrorMessages = [];
 
   //for (let i = 0; i < 52120; i++) {
-  for (let i = 19434; i < 19435; i++) {
+  for (let i = 13000; i < 16000; i++) {
     let continueCodeExecution = false;
+
+    /* 
+      Check for elements which indicate internet disconnected, if found then pause
+      code
+    */
 
     /* check for element with warning stating that id doesn't exist in db
     if try statement is successful, element doesn't exist in db */
@@ -894,22 +1029,39 @@ async function scrapeSpellInfo() {
     meaning id exists */
     if (continueCodeExecution === true) {
       try {
-        const dataToPushToArray = await parseToolTipInOrder(i, driver);
+        const dataToPushToArray = await parseToolTipInOrder(
+          i,
+          driver,
+          arrayOfErrorMessages
+        );
         arrayOfScrapedData.push(dataToPushToArray);
       } catch (error) {
         arrayOfPotentiallySkippedIDs.push(i);
         arrayOfErrorMessages.push([i, error.message]);
         console.log(`Spell ID: ${i}, Failed to scrape data!`);
+        console.log(
+          "Sleeping for: 5 Minutes. This is in order to wait for internet to come back."
+        );
+        arrayOfErrorMessages.push(`No internet, at index: ${i}.`);
+        driver = await new Builder().forBrowser("chrome").build();
+        await driver.sleep(30000);
+        console.log("Internet should be back by now, resuming");
+        await driver.get(`https://tbc.wowhead.com/spell=${i}`);
+
+        try {
+          const dataToPushToArray = await parseToolTipInOrder(
+            i,
+            driver,
+            arrayOfErrorMessages
+          );
+          arrayOfScrapedData.push(dataToPushToArray);
+        } catch (error) {
+          arrayOfErrorMessages.push([i, error.message]);
+          console.log("failed to continue after internet returned");
+        }
       }
     }
   }
-
-  /* console.log(
-    arrayOfScrapedData,
-    arrayOfFailedSpellIDs,
-    arrayOfPotentiallySkippedIDs,
-    arrayOfErrorMessages
-  ); */
 
   return [
     arrayOfScrapedData,
