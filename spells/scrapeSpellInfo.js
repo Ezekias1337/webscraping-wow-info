@@ -586,6 +586,7 @@ async function parseSpellComments(
       By.xpath("//b[contains(text(), 'No comments have been posted yet.')]")
     );
     console.log("Confirmed to have no comments");
+    return null;
   } catch (error) {
     console.log("No comments element not found, now parsing comments");
   }
@@ -785,8 +786,20 @@ async function parseToolTipInOrder(i, driver, arrayOfErrorMessages) {
     toolTipTable,
     arrayOfErrorMessages
   );
+
+ /*  If getting spellname fails, it means browser crashed, because every spell that exists
+  has a name. So rebuild driver, wait, and then retry */
+
   if (objToPush.spellName === undefined || objToPush.spellName === null) {
-    delete objToPush.spellName;
+    arrayOfErrorMessages.push(`Browser crashed, at index: ${i}.`);
+    console.log("Browser crashed");
+    driver = await new Builder().forBrowser("chrome").build();
+    await driver.sleep(30000);
+    console.log("Browser rebuilt");
+    objToPush.spellName = await parseSpellName(
+      toolTipTable,
+      arrayOfErrorMessages
+    );
   }
 
   objToPush.spellRank = await parseRank(toolTipTable, arrayOfErrorMessages);
@@ -1001,7 +1014,7 @@ async function scrapeSpellInfo() {
   let arrayOfErrorMessages = [];
 
   //for (let i = 0; i < 52120; i++) {
-  for (let i = 13000; i < 16000; i++) {
+  for (let i = 30000; i < 32000; i++) {
     let continueCodeExecution = false;
 
     /* 
