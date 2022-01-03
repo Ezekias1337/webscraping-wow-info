@@ -787,7 +787,7 @@ async function parseToolTipInOrder(i, driver, arrayOfErrorMessages) {
     arrayOfErrorMessages
   );
 
- /*  If getting spellname fails, it means browser crashed, because every spell that exists
+  /*  If getting spellname fails, it means browser crashed, because every spell that exists
   has a name. So rebuild driver, wait, and then retry */
 
   if (objToPush.spellName === undefined || objToPush.spellName === null) {
@@ -1013,8 +1013,7 @@ async function scrapeSpellInfo() {
   let arrayOfPotentiallySkippedIDs = [];
   let arrayOfErrorMessages = [];
 
-  //for (let i = 0; i < 52120; i++) {
-  for (let i = 30000; i < 32000; i++) {
+  for (let i = 0; i < 52120; i++) {
     let continueCodeExecution = false;
 
     /* 
