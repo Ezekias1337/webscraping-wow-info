@@ -1,0 +1,21 @@
+    - Name
+    - Level
+    - Required lvl
+    - Type (Group, solo, etc.)
+    - Side (Horde or alliance)
+    - Start npc
+    - End npc
+    - Shareable
+    - Difficulty scale by Level
+    - Added in patch...
+    - Quests part of chain if applicable (id and name)
+    - Screenshots
+    - Videos
+    - Quest description
+    - In Progress description
+    - Completion description
+    - Rewards (items, gold, and xp)
+    - Command for checking completion
+    - Location on map, coords, ALSO PIN COLOR or QUESTION MARK/EXCLAMATION MARK
+        example: https://tbc.wowhead.com/quest=10574/the-ashtongue-corruptors
+    - Comments

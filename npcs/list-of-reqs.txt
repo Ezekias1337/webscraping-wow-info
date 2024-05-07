@@ -1,0 +1,11 @@
+    - Name
+    - React (Horde vs Alliance)
+    - Health
+    - Resource (Mana, Energy, etc.)
+    - Type (Demon, Humanoid, etc.)
+    - Added in patch: (x.xx.x.x)
+    - Screenshots
+    - Videos
+    - Location on map, coords
+    - Abilities
+    - Comments
